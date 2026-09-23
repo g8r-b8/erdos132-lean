@@ -1,0 +1,29 @@
+# Lean / Lake
+.lake/
+build/
+lake-packages/
+
+# Python
+__pycache__/
+*.pyc
+
+# LaTeX auxiliary files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+*.toc
+*.bcf
+*.run.xml
+
+# Large regenerated SAT artefacts (see scripts/b3_drat_trim.py)
+*.cnf
+*.drup
+*.drat
+
+# OS
+.DS_Store

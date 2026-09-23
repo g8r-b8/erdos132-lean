@@ -1,0 +1,12 @@
+The contents of the paper/ directory (paper.tex, refs.bib, paper.pdf) are
+
+    Copyright 2026 Wingate Jones
+
+and are licensed under the Creative Commons Attribution 4.0 International
+License (CC BY 4.0). To view a copy of this license, visit
+
+    https://creativecommons.org/licenses/by/4.0/
+
+Everything else in this repository (Lean sources, the LRAT certificate,
+Python scripts, build files) is licensed under the Apache License 2.0;
+see LICENSE.

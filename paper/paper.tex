@@ -1,0 +1,757 @@
+\documentclass[11pt]{amsart}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[margin=1.1in]{geometry}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,citecolor=green!40!black,urlcolor=blue!60!black]{hyperref}
+\usepackage[capitalize,nameinlink]{cleveref}
+\emergencystretch=3em
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{question}[theorem]{Question}
+\newtheorem*{mainthm}{Theorem 1}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Dt}{\Delta_2}
+\newcommand{\mult}{\mu}
+\newcommand{\eps}{\varepsilon}
+\newcommand{\conv}{\operatorname{conv}}
+\newcommand{\turn}{\operatorname{turn}}
+\newcommand{\dist}{\operatorname{dist}}
+\newcommand{\Cc}{\mathrm{C}}      % circle
+\newcommand{\Dd}{\mathrm{B}}      % closed disc
+\newcommand{\chk}[1]{\textsuperscript{[#1]}}
+\definecolor{RED}{rgb}{0.8,0,0}\definecolor{red}{rgb}{0.8,0,0}
+\newcommand{\placeholder}[1]{\textcolor{red}{\textbf{[#1]}}}
+
+\title[Second-largest and minimum distance multiplicities]{Second-largest and minimum distance multiplicities in planar point sets: an upper bound below $3/2$, and related results on Erd\H{o}s Problem \#132}
+
+\author{Wingate Jones}
+
+\date{Draft of 23 September 2026}
+
+\begin{document}
+
+\begin{abstract}
+For a finite set $X\subset\R^2$ let $\Dt$ and $\delta$ be the second-largest and the smallest distance determined by $X$, and let $\mult(d)$ be the number of pairs of $X$ at distance $d$. Clemen, Dumitrescu and Liu asked for
+$L=\limsup_{n\to\infty}\max_{|X|=n}\min\{\mult(\Dt),\mult(\delta)\}/n$; the known bounds were $9/7\le L\le 3/2$, the upper bound coming from Vesztergombi's inequality $\mult(\Dt)\le 3n/2$. We prove that $\min\{\mult(\Dt),\mult(\delta)\}\le \tfrac{54}{37}n+C_0$ for an absolute constant $C_0$, so $L\le 54/37<3/2$.
+
+We also give two results on Erd\H{o}s Problem \#132, which asks whether some distance other than the diameter must occur at most $n$ times. First, if no vertex of the convex hull has four points of $X$ at distance $\Dt$ (for instance, if no four points of $X$ are concyclic), then $\mult(\Dt)\le\tfrac32|L_1|+|L_2|$, where $L_1,L_2$ are the first two convex layers; so, under this hypothesis, the answer is yes whenever at least half as many points lie at depth $\ge 3$ as on the hull. This rests on a layer bound whose inputs from Vesztergombi's structure theory we prove directly. Second, for $n$ points in convex position there are at least three distances occurring between $1$ and $n$ times when $n$ is even and at least $6$, and when $n\in\{7,9,11,13\}$. The cases $n=11,13$ are computer-assisted: they reduce to the unsatisfiability of finite ordinal problems, certified by DRAT/LRAT proof checkers, and for $n=7,11,13$ also by a Lean~4 formalisation.
+\end{abstract}
+
+\maketitle
+
+\section*{AI disclosure}
+The author used an AI assistant (Claude, Anthropic) for exploration, computation, formalisation and drafting. The checks performed on the results are described in \cref{app:verification}.
+
+\section{Introduction}\label{sec:intro}
+
+Let $X\subset\R^2$ be a set of $n$ points. Write $\Delta=\Delta(X)$ for its diameter, $\Dt$ for its second-largest distance and $\delta$ for its minimum distance, and write $\mult(d)=\mult_X(d)$ for the number of unordered pairs of points of $X$ at distance $d$. Hopf and Pannwitz~\cite{HP34} proved that $\mult(\Delta)\le n$.
+
+\subsection*{Erd\H{o}s Problem \#132}
+Erd\H{o}s and Pach asked whether there must be a \emph{second} distance, besides the diameter, that occurs at least once and at most $n$ times, and whether the number of such distances must tend to infinity (perhaps being at least $n^{1-o(1)}$). This is Problem \#132 on the Erd\H{o}s problems website~\cite{EP132}, where it is recorded as open and where Erd\H{o}s's offer of \$100 for ``any nontrivial result'' is recorded (reference [Er97e] there). The statement fails for $n=4$ (two equilateral triangles glued along an edge) and holds for $n=5,6$ by Erd\H{o}s and Fishburn~\cite{EF95a}. We call a distance $d$ \emph{rare} if $1\le\mult(d)\le n$.
+
+Clemen, Dumitrescu and Liu~\cite{CDL25} proved that the answer to the first question is yes for sets in convex position (their Theorem~1.2), and that $\mult(\Dt)\le n$ whenever
+\begin{equation}\label{eq:cdl13}
+\min\Bigl\{\tfrac32(|L_1|+|L_2|),\ \tfrac43|L_1|+2|L_2|,\ 2|L_1|+|L_2|\Bigr\}\le n,
+\end{equation}
+where $L_1,L_2$ are the first two convex layers (their Theorem~1.3). They showed that neither $\Dt$ nor $\delta$ is always rare: they constructed sets with $\min\{\mult(\Dt),\mult(\delta)\}\ge 9n/8-o(n)$ (their Proposition~1.5). They asked (their Problem~1.6) for the value of
+\[
+L:=\limsup_{n\to\infty}\ \max_{|X|=n}\ \frac{\min\{\mult(\Dt),\mult(\delta)\}}{n}.
+\]
+Vesztergombi~\cite{Ve87} proved that $\mult(\Dt)\le\frac32 n$ for every $n$-point planar set, which gives $L\le 3/2$. On the Erd\H{o}s problems forum, the user ienjoymath~\cite{ienjoymath} gave a construction showing $L\ge 9/7$ and conjectured $L=9/7$. As far as we know, $9/7\le L\le 3/2$ were the best bounds before this paper.
+
+\subsection*{Results}
+Our main result is an upper bound strictly below $3/2$.
+
+\begin{mainthm}
+There is an absolute constant $C_0$ such that every $n$-point set $X\subset\R^2$ satisfies
+\[
+\min\{\mult(\Dt),\mult(\delta)\}\ \le\ \tfrac{54}{37}\,n+C_0 .
+\]
+Consequently $L\le 54/37\approx 1.4595$.
+\end{mainthm}
+(Here $X$ is assumed to determine at least two distances; otherwise $n\le3$.)
+
+The constant $C_0$ is explicit; the proof gives $C_0=3N_0+10^8$ with $N_0=1.51\cdot 10^9$ (\cref{sec:assembly}). We have made no attempt to optimise it.
+
+\Cref{thm:layer} and \cref{cor:A1} give a new class of sets for which the answer to the first question of Problem \#132 is yes. Let $m_3:=n-|L_1|-|L_2|$ be the number of points of depth at least $3$. Condition~\eqref{eq:cdl13} contains the case $2|L_1|+|L_2|\le n$, i.e.\ $|L_1|\le m_3$. We show that $|L_1|\le 2m_3$ suffices under a genericity hypothesis that holds, for instance, when no four points of $X$ are concyclic. The inputs we need from Vesztergombi's structure theory~\cite{Ve96} are proved here from scratch (\cref{prop:core2,thm:deg4}).
+
+\Cref{sec:convex} treats the second question of Problem \#132 in convex position. \Cref{thm:convex-summary} states that a set of $n$ points in convex position has at least three rare distances for every $n$ with $6\le n\le 13$. Some of these cases follow from the literature, some follow from a parity-sharp version of the counting argument of~\cite{CDL25}, and the cases $n=11,13$ are new and computer-assisted. In \cref{sec:open} we list open problems.
+
+\subsection*{Idea of the proof of Theorem 1}
+Let $S$ be the set of points that have a partner at distance $\Dt$. Vesztergombi's bound applied to $S$ gives $\mult(\Dt)\le\frac32|S|$. Every $\delta$-pair not inside $S$ has an endpoint outside $S$, and a point has at most $6$ neighbours at distance $\delta$, so $\mult(\delta)\le e(S)+6(n-|S|)$, where $e(S)$ is the number of $\delta$-pairs inside $S$. A linear combination of these two bounds (\cref{lem:lp}) shows that any bound $e(S)\le k|S|+O(1)$ with $k<3/2$ beats $3/2$; with $k=4/3$ it gives $54/37$. Almost all points of $S$ lie on the boundary of a convex body: either the ``ball polygon'' $K=\bigcap_{w\in X}\Dd(w,\Dt)$, or the convex hull. Each such point has a well-defined inward direction. We show that all but $O(1)$ of the $\delta$-edges inside $S$ join points with almost equal inward directions. Such edges come in two kinds: tangential edges, and \emph{rungs} joining the two boundaries, whose geometry is fixed by an exact identity (\cref{lem:identities}(c)). An ownership/pairing argument then bounds the density of rungs. The regime where the diameter is much larger than $\Dt$ is handled separately by an incidence argument.
+
+\medskip\noindent\textbf{Notation.} $\Dd(c,r)$ and $\Cc(c,r)$ are the closed disc and the circle with centre $c$ and radius $r$. For unit vectors $u,u'$, $\angle(u,u')\in[0,\pi]$ is the angle between them; recall $|u-u'|\le\angle(u,u')$. Angles are in radians unless marked with a degree sign.
+
+\section{Set-up for the proof of Theorem 1}\label{sec:setup}
+
+We scale so that $\delta=1$. Throughout \cref{sec:setup,sec:reductions,sec:bad,sec:regions,sec:degenerate,sec:assembly}, $X$ is an $n$-point set with $n\ge 4$ and at least two distinct distances, so $\Delta>\Dt\ge\delta=1$. We put
+\[
+t:=\Delta-\Dt>0,\qquad \tau:=t-\frac{1-t^2}{2\Dt},\qquad \beta:=\frac1{100}.
+\]
+Then $\tau-t=(t^2-1)/(2\Dt)$. Hence $\tau\le t$ when $t\le 1$, and $\tau>1$ if and only if $t>1$.\chk{C2} A crucial feature of $X$ is that it has \emph{no distance in the open interval $(\Dt,\Delta)$}.
+
+We use the following objects.
+\begin{itemize}[leftmargin=2em]
+\item $D$ is the set of endpoints of diametral pairs. Each point of $D$ is a vertex of $P:=\conv X$.
+\item $S$ is the set of points of $X$ that have a partner at distance $\Dt$; $R:=X\setminus S$ and $r:=|R|$, $s:=|S|$.
+\item $K:=\bigcap_{w\in X}\Dd(w,\Dt)$, a compact convex set (a ``ball polygon'').
+\item $e(Y)$ is the number of $\delta$-pairs inside $Y\subseteq X$.
+\end{itemize}
+The \emph{degenerate regime} is $\Delta>1.94\,\Dt$ (\cref{sec:degenerate}); the \emph{nondegenerate regime} is $\Delta\le 1.94\,\Dt$ (\cref{sec:reductions,sec:bad,sec:regions}).
+
+\begin{lemma}[ball polygon]\label{lem:ballpoly}
+\begin{enumerate}[label=(\alph*)]
+\item $X\setminus D\subseteq K$.
+\item $S\setminus D\subseteq\partial K$.
+\item $\dist(z,K)\ge t$ for every $z\in D$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(a) A point $y\notin D$ has all its distances at most $\Dt$, since there are none in $(\Dt,\Delta)$. (b) If $v\in S\setminus D$ and $|vw|=\Dt$, then $v\in K\cap \Cc(w,\Dt)\subseteq\partial K$. (c) If $z\in D$ and $|zx|=\Delta$, then $K\subseteq\Dd(x,\Dt)$, while $|zx|=\Dt+t$.
+\end{proof}
+
+\subsection*{Direction field}
+For each $p\in S$ we fix a unit vector $u_p$.
+\begin{itemize}[leftmargin=2em]
+\item If $p\in S\setminus D$, choose a $\Dt$-partner $w_p$ and put $u_p:=(w_p-p)/\Dt$. Since $K\subseteq\Dd(w_p,\Dt)$, $u_p$ is an inward normal of $K$ at $p$.
+\item If $p\in S\cap D$, choose a diametral partner $x_p$ and put $u_p:=(x_p-p)/\Delta$. This is an inward normal of $P$ at $p$.
+\end{itemize}
+
+\begin{lemma}[exact identities]\label{lem:identities}
+Let $y\in X$, $y\neq p$.
+\begin{enumerate}[label=(\alph*)]
+\item If $p\in S\cap D$, then $(y-p)\cdot u_p\ge |y-p|^2/(2\Delta)>0$.
+\item If $p\in S\setminus D$, then either $(y-p)\cdot u_p\ge |y-p|^2/(2\Dt)$ (we say $y$ is \emph{normal} for $p$), or $|y-w_p|=\Delta$, so that $y\in D$ (we say $y$ is an \emph{exception} for $p$).
+\item In the exception case with $|y-p|=1$ we have exactly $(y-p)\cdot u_p=-\tau$. Hence $y-p=-\tau u_p\pm\sigma u_p^{\perp}$ with $\sigma:=\sqrt{1-\tau^2}$. In particular exceptions at distance $1$ exist only when $\tau\le 1$.
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+(a) $|y-x_p|^2=|y-p|^2-2\Delta(y-p)\cdot u_p+\Delta^2\le\Delta^2$. (b) $|y-w_p|^2=|y-p|^2-2\Dt(y-p)\cdot u_p+\Dt^2$, and $|y-w_p|\in[0,\Dt]\cup\{\Delta\}$. (c) With $|y-p|=1$ and $|y-w_p|=\Delta=\Dt+t$ the same identity gives $(y-p)\cdot u_p=(1+\Dt^2-\Delta^2)/(2\Dt)=(1-2\Dt t-t^2)/(2\Dt)=-\tau$.\chk{C2}
+\end{proof}
+
+\begin{lemma}[no common normal]\label{lem:nocommon}
+If $p\neq q$ both lie in $S\setminus D$, then $u_p\neq u_q$.
+\end{lemma}
+\begin{proof}
+Neither point lies in $D$, so each is normal for the other: $(q-p)\cdot u_p>0$ and $(p-q)\cdot u_q>0$. These cannot both hold if $u_p=u_q$.
+\end{proof}
+
+\subsection*{Good edges, T-edges and rungs}
+A $\delta$-edge $pq$ inside $S$ is \emph{good} if $\angle(u_p,u_q)\le\beta$, and \emph{bad} otherwise. For a good edge put $e:=q-p$, $a:=e\cdot u_p$ and $b:=-e\cdot u_q$. Then $|a+b|=|e\cdot(u_p-u_q)|\le\beta$.
+
+\begin{lemma}[dichotomy]\label{lem:dichotomy}
+Assume $\tau>2\beta$. Each good edge is of exactly one of the following two kinds.
+\begin{itemize}[leftmargin=2em]
+\item \emph{T-edge:} $a,b\in(0,\beta)$.
+\item \emph{Rung:} one end $v\in S\setminus D$ sees the other end $z\in S\cap D$ as an exception. Then $(z-v)\cdot u_v=-\tau$ and $(v-z)\cdot u_z\in[\tau-\beta,\tau+\beta]$.
+\end{itemize}
+\end{lemma}
+\begin{proof}
+By \cref{lem:identities}, from each end the other end is either normal (then the corresponding one of $a,b$ is positive) or an exception (then it equals $-\tau$). An exception target lies in $D$, and points of $D$ see everything as normal, so both ends cannot be exceptions. If neither is, then $a,b>0$ and $a+b\le\beta$. If one is, say $a=-\tau$, then $b\in[\tau-\beta,\tau+\beta]$, and $b>0$ shows that $b$ is not an exception value.
+\end{proof}
+
+We say a T-neighbour $q$ of $p$ is on the \emph{right} (resp.\ \emph{left}) of $p$ if $(q-p)\cdot u_p^{\perp}>0$ (resp.\ $<0$), where $u^\perp$ denotes $u$ rotated by $-90^\circ$.
+\begin{itemize}[leftmargin=2em]
+\item[(T1)] Each $p$ has at most one T-neighbour on each side. Indeed, two T-directions on one side both make an angle in $(0,\arcsin\beta)$ with $\pm u_p^\perp$, so they are less than $60^\circ$ apart, whereas two points at distance $1$ from $p$ and at distance $\ge 1$ from each other are at least $60^\circ$ apart as seen from $p$.
+\item[(T2)] If $q$ is the right T-neighbour of $p$ then $p$ is the left T-neighbour of $q$, since $\angle(u_p,u_q)\le\beta$.
+\end{itemize}
+Hence the T-edges form vertex-disjoint directed paths and cycles, and every cycle has length at least $3$ (a vertex cannot be both the left and the right T-neighbour of another).
+
+\subsection*{Turning}
+Let $\gamma$ be a closed arc of the boundary of a compact convex set with nonempty interior. Its \emph{turning} $\turn(\gamma)$ is the length of the set $N(\gamma)\subseteq S^1$, the union of the normal cones at \emph{all} points of $\gamma$, including the full normal cones at its endpoints.
+
+\begin{lemma}[multiplicity]\label{lem:multiplicity}
+Let $\gamma_1,\dots,\gamma_m$ be closed boundary arcs of one convex body, and suppose every boundary point lies in at most $M$ of them. Then $\sum_i\turn(\gamma_i)\le 2\pi M$.
+\end{lemma}
+\begin{proof}
+For all but countably many directions $\nu\in S^1$ the set of boundary points with outer (or inner) normal $\nu$ is a single point $y_\nu$, and $\nu\in N(\gamma_i)$ if and only if $y_\nu\in\gamma_i$. Integrate over $\nu$.
+\end{proof}
+
+Points of $S\setminus D$ lie on $\partial K$ and points of $S\cap D$ lie on $\partial P$; in each case distinct points are at Euclidean, hence arc-length, distance at least $1$. So a boundary arc of length $\ell$ contains at most $\ell+1$ of them, and a boundary of perimeter $\ell$ contains at most $\ell$ of them.
+
+\section{Reductions}\label{sec:reductions}
+
+\begin{lemma}[(VS)]\label{lem:VS}
+For every $S'\subseteq S$, the number of $\Dt$-pairs inside $S'$ is at most $\frac32|S'|$. In particular $\mult(\Dt)\le\frac32 s$.
+\end{lemma}
+\begin{proof}
+Every $\Dt$-pair of $X$ lies in $S$, and every distance within $S'$ is a distance of $X$. If $S'$ contains no $\Dt$-pair there is nothing to prove. If $S'$ contains a diametral pair of $X$, then $\operatorname{diam}S'=\Delta$ and, because $X$ has no distances in $(\Dt,\Delta)$, $\Dt$ is the second-largest distance of $S'$; Vesztergombi's theorem~\cite{Ve87} gives at most $\frac32|S'|$ such pairs. Otherwise every distance in $S'$ is at most $\Dt$, so $\Dt=\operatorname{diam}S'$ and Hopf--Pannwitz~\cite{HP34} gives at most $|S'|$.
+\end{proof}
+
+We use Vesztergombi's theorem in exactly the form of its main theorem: for any set of $m$ points in the plane, the second-largest distance occurs at most $\frac32 m$ times~\cite[Theorem]{Ve87}. There is no threshold on $m$ and no additive constant.
+
+\begin{lemma}[(E)]\label{lem:E}
+$\mult(\delta)\le e(S)+6r$.
+\end{lemma}
+\begin{proof}
+Every $\delta$-pair not inside $S$ has an endpoint in $R$, and each point has at most $6$ points at distance $\delta$.
+\end{proof}
+
+\begin{lemma}\label{lem:lp}
+Suppose $e(S)\le k s+C$ with $0\le k<3/2$. Then $\min\{\mult(\Dt),\mult(\delta)\}\le \frac{9}{7.5-k}\,n+C$.
+\end{lemma}
+\begin{proof}
+Put $\lambda=(6-k)/(7.5-k)\in(0,1)$. By \cref{lem:VS,lem:E},
+\[
+\min\{\mult(\Dt),\mult(\delta)\}\le\lambda\cdot\tfrac32 s+(1-\lambda)(ks+C+6r)\le \tfrac{9}{7.5-k}(s+r)+C.
+\]
+For $k=1,\frac54,\frac43$ the factor $9/(7.5-k)$ is $\frac{18}{13},\frac{36}{25},\frac{54}{37}$.\chk{C1}
+\end{proof}
+
+\begin{lemma}\label{lem:lp2}
+Let $S_1\subseteq S$ consist of points of $\Dt$-degree exactly $1$, with $p_1:=|S_1|$. Suppose $e(S)\le s+2p_1+C$. Then $\min\{\mult(\Dt),\mult(\delta)\}\le\frac75 n+C$.
+\end{lemma}
+\begin{proof}
+At most $p_1$ $\Dt$-pairs touch $S_1$, and the rest lie inside $S\setminus S_1$, so $\mult(\Dt)\le p_1+\frac32(s-p_1)$ by \cref{lem:VS}. Hence
+$\min\le\frac45\bigl(\frac32 s-\frac12p_1\bigr)+\frac15\bigl(s+2p_1+C+6r\bigr)=\frac75 s+\frac65 r+\frac C5\le\frac75n+C$.\chk{C1}
+\end{proof}
+
+So in the nondegenerate regime it suffices to show $e(S)\le\frac43 s+O(1)$ in every $\tau$-regime except one, and to show that the remaining regime satisfies the hypothesis of \cref{lem:lp2}.
+
+\subsection*{Small cases}
+Suppose we are in the nondegenerate regime and $\Dt<10^4$. Then $\Delta<1.94\cdot10^4$, so $X$ lies in a disc of radius $\Delta$ about any of its points, and since the discs of radius $\frac12$ about points of $X$ are disjoint, $n\le(2\Delta+1)^2<N_0:=1.51\cdot10^9$.\chk{C11} Since $\mult(\delta)\le 3n$, Theorem~1 holds for such $X$ once $C_0\ge 3N_0$. \emph{From now on, in the nondegenerate regime, $\Dt\ge 10^4$}; in particular $2/\Dt\le\beta/2$.\chk{C3}
+
+\section{Bad edges are \texorpdfstring{$O(1)$}{O(1)} in the nondegenerate regime}\label{sec:bad}
+
+\subsection{A lens lemma}
+
+\begin{lemma}[lens]\label{lem:lens}
+Let $\Lambda=\Dd(c_1,\rho)\cap\Dd(c_2,\rho)$ with $0<|c_1c_2|=d<2\rho$, and put $\cos\varphi_0:=d/(2\rho)$. Assume
+\begin{equation}\label{eq:lenshyp}
+\rho\ \ge\ \frac{2}{\cos(\varphi_0/2)-\cos\varphi_0}.
+\end{equation}
+Let $p$ lie on the arc of $\partial\Lambda$ belonging to $\Cc(c_1,\rho)$, let $q$ lie on the arc belonging to $\Cc(c_2,\rho)$, and suppose $|pq|\le 1$. Then there is a corner $c$ of $\Lambda$ such that the boundary arcs from $p$ to $c$ and from $c$ to $q$ each have length at most $\rho_0:=1/\sin(\varphi_0/2)$.
+\end{lemma}
+\begin{proof}
+Take $c_1=(-d/2,0)$, $c_2=(d/2,0)$, $p=c_1+\rho(\cos\varphi,\sin\varphi)$ and $q=c_2+\rho(-\cos\psi,\sin\psi)$ with $|\varphi|,|\psi|\le\varphi_0$.
+\emph{Step 1.} $p_x-q_x=\rho(\cos\varphi-\cos\varphi_0)+\rho(\cos\psi-\cos\varphi_0)$ with both terms $\ge0$; since $|p_x-q_x|\le1$, each term is at most $1$. By~\eqref{eq:lenshyp}, $\cos\varphi<\cos(\varphi_0/2)$, i.e.\ $|\varphi|>\varphi_0/2$; likewise $|\psi|>\varphi_0/2$.
+\emph{Step 2.} By the mean value theorem, $\rho(\varphi_0-|\varphi|)=\rho(\cos\varphi-\cos\varphi_0)/\sin\xi\le 1/\sin\xi$ for some $\xi\in(\varphi_0/2,\varphi_0)\subseteq(0,\pi/2)$, so $\rho(\varphi_0-|\varphi|)\le\rho_0$; likewise for $\psi$.
+\emph{Step 3.} If $\varphi,\psi$ had opposite signs, then $|p_y-q_y|\ge 2\rho\sin(\varphi_0/2)$. Now~\eqref{eq:lenshyp} gives $\rho\ge 2/(1-\cos\varphi_0)=1/\sin^2(\varphi_0/2)$, so $2\rho\sin(\varphi_0/2)\ge 2/\sin(\varphi_0/2)\ge2>1$, a contradiction.
+\emph{Step 4.} So the corner $c=(0,\operatorname{sign}(\varphi)\rho\sin\varphi_0)$ works.
+\end{proof}
+
+\begin{lemma}[lens-corner arc length]\label{lem:lenscorner}
+In the situation of \cref{lem:lens}, suppose moreover that $p,q\in\partial K'$ for a compact convex $K'\subseteq\Lambda$, and $|pq|=1$. Let $H$ be the closed half-plane bounded by the line $pq$ that contains $c$, and let $\gamma:=\partial K'\cap H$ be the boundary arc of $K'$ from $p$ to $q$ on $c$'s side. Then $\operatorname{length}(\gamma)\le 2\rho_0$.
+\end{lemma}
+\begin{proof}
+$\partial\Lambda$ contains no segment, so the line $pq$ meets it only in $p$ and $q$, and $\partial\Lambda\cap H$ is exactly the arc $p\to c\to q$, of length at most $2\rho_0$. Since $K'\cap H\subseteq\Lambda\cap H$ are convex, monotonicity of perimeter gives $\operatorname{length}(\gamma)+1\le 2\rho_0+1$. (If $K'\cap H$ is the segment $[p,q]$, then $\gamma$ is that segment, of length $1\le2\rho_0$.)
+\end{proof}
+
+\emph{Constants.}\chk{C7} For \emph{KK lenses} ($\rho=\Dt$, $d\le\Delta\le1.94\Dt$) we have $\cos\varphi_0\le 0.97$, so $\rho_0^2=2/(1-\cos\varphi_0)\le 66.7<8.2^2$. The function $c\mapsto\cos(\varphi_0/2)-c=\sqrt{(1+c)/2}-c$ is decreasing on $[0,1)$, so~\eqref{eq:lenshyp} holds as soon as $\rho\ge 89.01$, in particular for $\rho=\Dt\ge10^4$. For \emph{DD lenses} ($\rho=\Delta$, $d\le\Delta$) we have $\cos\varphi_0\le\frac12$, $\rho_0\le 2$, and~\eqref{eq:lenshyp} needs only $\rho\ge 5.5$.
+
+\subsection{The count}
+We split bad edges $pq$ by type: \emph{KK} (both ends in $S\setminus D$), \emph{DD} (both in $S\cap D$) and \emph{cross} (one end in each).
+
+If the perimeter of $K$ is below $1202$, then $|S\setminus D|<1202$ and at most $6\cdot1202$ edges touch $S\setminus D$; similarly for $P$ and $S\cap D$. We may therefore assume both perimeters are at least $1202$ when counting the bad edges touching the corresponding row; these small cases contribute a constant below $1.5\cdot10^4$ in total.
+
+\subsubsection*{KK edges}
+Let $p,q\in S\setminus D$ form a bad edge. If $w_p=w_q$, then $\angle(u_p,u_q)\le2\arcsin(1/(2\Dt))<\beta$,\chk{C3} so the edge would be good; hence $w_p\neq w_q$. Then $K\subseteq\Lambda:=\Dd(w_p,\Dt)\cap\Dd(w_q,\Dt)$, $p$ lies on the $\Cc(w_p,\Dt)$-arc and $q$ on the $\Cc(w_q,\Dt)$-arc of $\partial\Lambda$, and $d=|w_pw_q|\le\Delta\le1.94\Dt$. \Cref{lem:lens,lem:lenscorner} give an arc $\gamma_{pq}\subseteq\partial K$ from $p$ to $q$ of length at most $2\rho_0$. The union of the normal cones along the closed arc $\gamma_{pq}$ is connected and contains $u_p$ and $u_q$, so $\turn(\gamma_{pq})\ge\angle(u_p,u_q)>\beta$. If $y\in\gamma_{pq}$ then $p$ lies within arc distance $2\rho_0$ of $y$; there are at most $4\rho_0+1$ such $p$, each of degree at most $6$, so every point lies on at most $M=6(4\rho_0+1)$ of the arcs. By \cref{lem:multiplicity},
+\[
+\#\text{KK-bad}\le 12\pi(4\rho_0+1)/\beta<1.28\cdot10^5.\chk{C9}
+\]
+
+\subsubsection*{DD edges}
+The same argument, on $\partial P$ with the lens $\Dd(x_p,\Delta)\cap\Dd(x_q,\Delta)$ and $\rho_0\le 2$, gives $\#\text{DD-bad}\le 12\pi\cdot 9/\beta<3.4\cdot10^4$. (If $x_p=x_q$ the angle is less than $2/\Delta<\beta$ and the edge is good.)
+
+\subsubsection*{Cross edges}
+Let $zv$ be a bad edge with $z\in S\cap D$ and $v\in S\setminus D$. Since $z\in X$, $|zw_v|\in[0,\Dt]\cup\{\Delta\}$.
+
+\emph{(c1) $|zw_v|=\Delta$.} By \cref{lem:identities}(a), $(w_v-z)/\Delta$ is a second inward normal of $P$ at $z$. Its angle to $u_v$ is the angle at $w_v$ of the triangle $zvw_v$; that angle is opposite the side of length $1$, hence acute, and by the law of sines it is at most $\arcsin(1/\Delta)<2/\Dt\le\beta/2$.\chk{C3} As $\angle(u_z,u_v)>\beta$, the normal cone of $P$ at $z$ has angle greater than $\beta/2$. Normal cones at distinct vertices have disjoint interiors, so fewer than $4\pi/\beta$ points $z$ qualify, each of degree at most $6$: $\#(\mathrm{c1})<24\pi/\beta<7600$.
+
+\emph{(c2) $|zw_v|\le\Dt$.} Let $g$ be the unit vector from $v$ towards $x_z$, and $\alpha:=\angle(u_v,g)$.
+\begin{enumerate}[leftmargin=2em,label=(\roman*)]
+\item \emph{Depth.} $v\notin D$ gives $|vx_z|\le\Dt$, while $|zx_z|=\Delta$ and $|zv|=1$ give $|vx_z|\ge\Delta-1$. So $v\in\Dd(x_z,\Dt)$ at depth $d_0:=\Dt-|vx_z|\in[0,1-t]$; in particular this case needs $t\le 1$. Also $K\subseteq\Dd(x_z,\Dt)$.
+\item \emph{$\alpha$ is not small.} $\angle(u_z,g)$ is the angle at $x_z$ of the triangle $zvx_z$, which is at most $\arcsin(1/\Delta)<\beta/2$; hence $\alpha\ge\angle(u_v,u_z)-\angle(u_z,g)>\beta/2$.
+\item \emph{$\alpha$ is not close to $\pi$.} Since $w_v,x_z\in X$, $|w_vx_z|\le\Delta\le1.94\Dt$. The law of cosines in the triangle $vw_vx_z$ (sides $\Dt$ and $\Dt-d_0$ at $v$, enclosing the angle $\alpha$) gives $\cos\alpha\ge(1+\varrho^2-1.94^2)/(2\varrho)$, where $\varrho:=(\Dt-d_0)/\Dt\in[1-10^{-4},1]$. The right side is increasing in $\varrho$, so $\cos\alpha\ge-0.8821$, i.e.\ $\alpha\le151.9^\circ$. By concavity of $\sin$ on $[0,\pi]$, $\sin\alpha\ge\min\{\sin(\beta/2),0.471\}=\sin(\beta/2)$.\chk{C8}
+\item \emph{The walk.} Let $e_0\perp u_v$ be the unit vector with $e_0\cdot g=-\sin\alpha<0$. Follow $\partial K$ from $v$ in the direction whose forward one-sided tangent is closest to $e_0$, parametrised by arc length, $\gamma(0)=v$. Suppose the turning of $\gamma([0,\sigma])$ is at most $\beta/4$. This turning includes the whole normal cone $N_K(v)$. Then every normal along the arc is within $\beta/4$ of $u_v$, so every forward tangent $\gamma'$ is within $\beta/4$ of $e_0$ (at a corner $v$, the forward tangent is perpendicular to an extreme normal of $N_K(v)$, which is also within $\beta/4$ of $u_v$). Hence $\gamma'\cdot g\le-\sin\alpha+2\sin(\beta/8)\le-\sin(\beta/2)+2\sin(\beta/8)<-\beta/5$.\chk{C8} Integrating, $(\gamma(\sigma)-v)\cdot g\le-\sigma\beta/5$, and so
+\[
+|\gamma(\sigma)-x_z|^2\ \ge\ (\Dt-d_0)^2+\tfrac25(\Dt-d_0)\,\sigma\beta .
+\]
+For $\sigma=L:=6/\beta=600$ the right side exceeds $\Dt^2$,\chk{C8} which puts $\gamma(L)$ outside $\Dd(x_z,\Dt)\supseteq K$, a contradiction. Hence the closed arc $J_v$ of length $L$ from $v$ in the chosen direction has turning greater than $\beta/4$.
+\item \emph{Count.} A point $y$ lies in $J_v$ only if $v$ is within arc distance $L$ of $y$, which allows at most $2L+1$ points $v$. By \cref{lem:multiplicity}, $\#\{v\}\le 2\pi(2L+1)/(\beta/4)$. Each such $v$ has degree at most $6$, so $\#(\mathrm{c2})\le48\pi(2L+1)/\beta<1.82\cdot10^7$.\chk{C9}
+\end{enumerate}
+
+\begin{proposition}\label{prop:bad}
+In the nondegenerate regime the number $C_{\mathrm{bad}}$ of bad edges satisfies $C_{\mathrm{bad}}<1.83\cdot10^7$. Together with the constants $71$ and $12$ of \cref{sec:regions}, $C_{\mathrm{bad}}+71+12<10^8$.\chk{C9}
+\end{proposition}
+
+\section{The nondegenerate regime}\label{sec:regions}
+
+\subsection{Region I: \texorpdfstring{$\tau\le\sqrt3/2-2\beta$}{tau <= sqrt3/2 - 2 beta}}\label{sec:regionI}
+Let $p\in S\setminus D$ and let $q$ be a good neighbour of $p$; the \emph{elevation} of $q-p$ is $\arcsin((q-p)\cdot u_p)$. If $q$ is normal for $p$, then $b>0$ (by \cref{lem:identities}(a) if $q\in D$, by (b) if $q\notin D$), so $a<\beta$. Otherwise $q$ is an exception and $a=-\tau$.
+\begin{itemize}[leftmargin=2em]
+\item If $\tau\ge0$, every good neighbour on one side of $\R u_p$ has elevation in $[-\arcsin\tau,\arcsin\beta)$, a window of width less than $\arcsin(\sqrt3/2-2\beta)+\arcsin\beta\approx58.35^\circ<60^\circ$.\chk{C4}
+\item If $\tau<0$, then $|\tau|\le1/(2\Dt)$ and all elevations lie in $(0,\arcsin\beta)\cup\{\arcsin|\tau|\}$; the window is again less than $60^\circ$.\chk{C4}
+\end{itemize}
+Let $p\in S\cap D$. Then $a>0$ always, and either $a<\beta$, or $p$ is the exception of $q$ and $a\in[\tau-\beta,\tau+\beta]$; the window is at most $\arcsin(\sqrt3/2-\beta)\approx58.87^\circ<60^\circ$.\chk{C4}
+
+Since two neighbours of $p$ are at least $60^\circ$ apart, $p$ has at most one good neighbour on each side. Hence $e(S)\le s+C_{\mathrm{bad}}$, and \cref{lem:lp} with $k=1$ gives $\min\{\mult(\Dt),\mult(\delta)\}\le\frac{18}{13}n+C$.
+
+\subsection{The regions with \texorpdfstring{$\tau>\sqrt3/2-2\beta$}{tau > sqrt3/2 - 2 beta}}
+Here $\tau>2\beta$,\chk{C5,C6} so \cref{lem:dichotomy} applies. \emph{Region II} is $\tau\ge\sqrt3/2+3\beta$; \emph{Region III} is $\sqrt3/2-2\beta<\tau<\sqrt3/2+3\beta$.
+
+\subsubsection*{Region II with $\tau>1$}
+Then $t>1$, and by \cref{lem:identities}(c) there are no rungs. By (T1) the T-edges number at most $s$, so $e(S)\le s+C_{\mathrm{bad}}$, which gives $\frac{18}{13}n+C$.
+
+From now on in Region II assume $\sqrt3/2+3\beta\le\tau\le1$. Then $t\le 1$ and $t\ge\tau$, so $t-\arcsin\beta\ge 0.886$; also $\sigma=\sqrt{1-\tau^2}\le\sigma_{\max}\approx0.4440$.\chk{C5}
+
+\subsubsection{Mixed T-edges}
+\begin{lemma}\label{lem:mixedT}
+Assume $\sqrt3/2+3\beta\le\tau\le1$. Let $v\in S\setminus D$ and $z\in S\cap D$ be joined by a T-edge. Then the closed arc of $\partial K$ of length $2$ starting at $v$ on $z$'s side has turning at least $t-\arcsin\beta$.
+\end{lemma}
+\begin{proof}
+Suppose the turning is $\Theta<t-\arcsin\beta$; note $t-\arcsin\beta<1<\pi/3$. Let $e_0$ be the unit tangent direction at $v$ perpendicular to $u_v$ pointing to $z$'s side. Every forward tangent along the arc is within $\Theta$ of $e_0$, so $|\gamma(\sigma)-v|\ge\sigma\cos\Theta\ge\sigma/2$, and some $\sigma^*\le2$ has $|\gamma(\sigma^*)-v|=1$. The unit vector $\gamma(\sigma^*)-v$ lies within $\Theta$ of $e_0$, and the unit vector $z-v$ lies within $\arcsin\beta$ of $e_0$. Hence $|\gamma(\sigma^*)-z|\le\Theta+\arcsin\beta<t\le\dist(z,K)$ by \cref{lem:ballpoly}(c). But $\gamma(\sigma^*)\in K$, a contradiction.
+\end{proof}
+Each $v$ has at most two T-edges, and $v$ must lie within arc distance $2$ of a point $y$ of its arc, so at most $5$ such $v$ and $M\le10$. By \cref{lem:multiplicity} the number of mixed T-edges is at most $2\pi\cdot10/0.886<71$.\chk{C5}
+
+From here on, the \emph{K-row} is $S\setminus D$ and the \emph{D-row} is $S\cap D$, each with its own \emph{pure} T-edges; rungs join the two rows.
+
+\subsubsection{Rungs}
+For a rung $(v,z)$ write $z=v+o_{\sigma'}(u_v)$, where $o_{\pm}(u):=-\tau u\pm\sigma u^\perp$ (\cref{lem:identities}(c)). The map $u\mapsto o_\pm(u)$ is a rotation, so $|o_\pm(u)-o_\pm(u')|=|u-u'|\le\angle(u,u')$; and $|o_+(u)-o_-(u)|=2\sigma$. Hence $|o_{\pm}(u)-o_{\pm}(u')|\le2\sigma+\angle(u,u')$ for any choice of signs.
+
+\begin{itemize}[leftmargin=2em]
+\item[(R1)] \emph{Each vertex has at most one rung.} At $v$: the two candidate positions $v+o_\pm(u_v)$ are $2\sigma<1$ apart. At $z$: if $z$ had rungs to $v\neq v'$, both rungs are good, so $\angle(u_v,u_{v'})\le2\beta$ and $|v-v'|\le2\sigma+2\beta\approx0.908<1$,\chk{C5} a contradiction.
+\end{itemize}
+
+\emph{T-steps.} If $q$ is the right T-neighbour of $p$, then $q-p=\cos\eps\,u_p^\perp+\sin\eps\,u_p$ with $\eps\in(0,\arcsin\beta)$. So for T-steps $e_1$ at $v_0$ and $e_2$ at $z_0$, $\angle(e_1,e_2)\le\angle(u_{v_0},u_{z_0})+\arcsin\beta$.
+
+\begin{lemma}[(R2), proximity]\label{lem:R2}
+Let $(v_0,z_0)$ be a rung, $v_1$ the right pure T-neighbour of $v_0$ and $z_1$ the right pure T-neighbour of $z_0$; put $e_1=v_1-v_0$, $e_2=z_1-z_0$. If $v_1$ has a rung $(v_1,z')$, then $z'=z_1$.
+\end{lemma}
+\begin{proof}
+$z'-z_1=(e_1-e_2)+(o_{\sigma_1}(u_{v_1})-o_{\sigma_0}(u_{v_0}))$. Since $\angle(u_{v_0},u_{z_0})\le\beta$ (good rung) and $\angle(u_{v_0},u_{v_1})\le\beta$ (good T-edge), $|z'-z_1|\le(\beta+\arcsin\beta)+\beta+2\sigma\approx0.918<1$.\chk{C5} Distinct points of $X$ are at least $1$ apart.
+\end{proof}
+
+\begin{lemma}[(R2-sym)]\label{lem:R2sym}
+In the setting of \cref{lem:R2}, if $z_1$ has a rung $(v',z_1)$, then $v'=v_1$.
+\end{lemma}
+\begin{proof}
+$v'=z_1-o_{\sigma'}(u_{v'})$ and $v_1=z_0-o_{\sigma_0}(u_{v_0})+e_1$, so $v'-v_1=(e_2-e_1)-(o_{\sigma'}(u_{v'})-o_{\sigma_0}(u_{v_0}))$. The angle between $u_{v'}$ and $u_{v_0}$ is at most $3\beta$, as the sum of three good-edge angles along $v'\to z_1\to z_0\to v_0$. Hence $|v'-v_1|\le(\beta+\arcsin\beta)+3\beta+2\sigma\le2\sigma+6\beta\approx0.948<1$.\chk{C5}
+\end{proof}
+
+\begin{itemize}[leftmargin=2em]
+\item[(R3)] \emph{Parallel rungs and rhombi.} Rungs with the same vector $c$ satisfy $c\cdot u_v=-\tau$, so $u_v$ is one of the two unit solutions, which lie at $\pm\theta_0$ from $-c$, where $\theta_0:=\arccos\tau\in[0,\pi/2]$. Rungs form a matching by (R1), so their K-ends are distinct and by \cref{lem:nocommon} have distinct normals. Hence \emph{no three rungs are parallel}, and two parallel rungs have normals exactly $2\theta_0$ apart. If $v_0v_1$, $v_1z_1$, $z_1z_0$, $z_0v_0$ are all unit edges (a \emph{rhombus}), then $v_1$ and $z_0$ are the two points of $\Cc(v_0,1)\cap\Cc(z_1,1)$, so $v_0+z_1=v_1+z_0$ and the rungs $(v_0,z_0)$ and $(v_1,z_1)$ are parallel. Since the T-edge $v_0v_1$ is good, $2\theta_0=\angle(u_{v_0},u_{v_1})\le\beta$. So \emph{rhombi exist only if $\tau\ge\cos(\beta/2)$}, and $\cos(\beta/2)>\sqrt3/2+3\beta$.\chk{C5}
+\end{itemize}
+
+\subsubsection{Ownership and pairing}
+For a rung $\mathsf r=(v,z)$, walk right from $v$ along pure K-row T-edges until reaching the first vertex after $v$ that is a rung vertex, or until the walk stops. Let $k\ge1$ be the number of vertices visited before stopping, $v$ included. Define $d$ in the same way in the D-row, starting from $z$. Then $\mathsf r$ \emph{owns} these $k+d$ vertices. Every other row vertex is \emph{unowned}: it has no rung vertex to its left on its T-path or T-cycle. Ownership is well defined, since each owned vertex belongs to the nearest rung vertex at or to its left, and that rung vertex lies on exactly one rung.
+
+\emph{Charging.} Charge to $\mathsf r$ the rung itself and the right T-edge out of each vertex it owns. Charge every other pure T-edge to its unowned left endpoint. Every rung and pure T-edge is charged exactly once, and every vertex has at most one right T-edge. Hence:
+\begin{itemize}[leftmargin=2em]
+\item $\mathrm{edges}(\mathsf r)\le1+k+d$, with equality only if both walks end at a rung vertex (``both reach''); otherwise $\mathrm{edges}(\mathsf r)\le k+d$;
+\item unowned vertices carry at most one edge each.
+\end{itemize}
+
+\emph{Both-reach gaps are $(1,1)$ or $(\ge2,\ge2)$.} If both walks reach and $k=1$, then $z_0$ has a right neighbour $z_1$ and $v_1$ is a rung vertex; by \cref{lem:R2} its rung is $(v_1,z_1)$, so $d=1$. If both reach and $d=1$, then $v_0$ has a right neighbour $v_1$ and $z_1$ is a rung vertex; by \cref{lem:R2sym} its rung is $(v_1,z_1)$, so $k=1$. A $(1,1)$ gap is a rhombus $v_0v_1z_1z_0$ (by (R1), $z_1\neq z_0$ and $v_1\neq v_0$). A cycle with a single rung vertex gives a both-reach gap with $k$ equal to the cycle length, which is at least $3$.
+
+\emph{Ratios.} A rhombus gap has ratio edges/vertices $=3/2$; a both-reach gap with $k,d\ge2$ has ratio at most $5/4$; every other gap has ratio at most $1$.
+
+If $\tau<\cos(\beta/2)$ there are no rhombi, so $e(S)\le\frac54s+C_{\mathrm{bad}}+71$ and \cref{lem:lp} gives $\frac{36}{25}n+C$.
+
+If $\tau\ge\cos(\beta/2)$, pair each rhombus rung $\mathsf r_0=(v_0,z_0)$ with its successor $\mathsf r_1=(v_1,z_1)$. The rung $\mathsf r_1$ is not itself a rhombus rung: otherwise $\mathsf r_0,\mathsf r_1,\mathsf r_2$ would be three parallel rungs (here $v_2\neq v_0$ because T-cycles have length at least $3$). The pairing is injective, because $v_0$ is the unique left T-neighbour of $v_1$. If $\mathsf r_1$ owns $m$ vertices, the pair has ratio at most
+\[
+\max\Bigl\{\frac{4+m}{2+m}: m\ge4\Bigr\}\cup\Bigl\{\frac{3+m}{2+m}: m\ge2\Bigr\}=\frac43 .\chk{C5}
+\]
+Hence $e(S)\le\frac43s+C_{\mathrm{bad}}+71$, and \cref{lem:lp} gives $\frac{54}{37}n+C$. This is the only place where $54/37$ is attained.
+
+\subsection{Region III: \texorpdfstring{$\sqrt3/2-2\beta<\tau<\sqrt3/2+3\beta$}{sqrt3/2 - 2 beta < tau < sqrt3/2 + 3 beta}}\label{sec:regionIII}
+Here $\theta_0=\arccos\tau\in(26.36^\circ,32.22^\circ)$.
+
+\begin{lemma}[corner lemma]\label{lem:corner}
+Suppose $v\in S\setminus D$ has a rung partner $z$ and a second $\Dt$-partner $w'\neq w_v$, and put $u':=(w'-v)/\Dt$. Then $\angle(u_v,u')\ge\min\{2\theta_0,\,90^\circ-\theta_0\}>2\pi/7$.
+\end{lemma}
+\begin{proof}
+Put $c=z-v$. If $|zw'|=\Delta$, then \cref{lem:identities}(c) applied with $w'$ gives $c\cdot u'=-\tau$, so $u'$ is the other unit solution and the angle is $2\theta_0$. If $|zw'|\le\Dt$, then $c\cdot u'>0$ while $\angle(c,u_v)=180^\circ-\theta_0$, so the angle is at least $90^\circ-\theta_0$. Numerically, $2\theta_0>2\pi/7$ because $\tau<\sqrt3/2+3\beta<\cos(\pi/7)$, and $90^\circ-\theta_0>2\pi/7$ because $\tau>\sqrt3/2-2\beta>\cos(3\pi/14)$.\chk{C6}
+\end{proof}
+Both $u_v$ and $u'$ are inward normals of $K$ at $v$, and $\angle(u_v,u')<\pi$ because $|w_vw'|\le\Delta<2\Dt$. So the normal cone $N_K(v)$ has angle greater than $2\pi/7$, and at most $6$ such $v$ exist. Every other K-vertex that has a rung has $\Dt$-degree exactly $1$; let $S_1$ be the set of these vertices. A K-vertex has at most $2$ rungs (the two positions $v+o_\pm(u_v)$), and (T1) bounds all T-edges, mixed ones included, by $s$. Hence
+\[
+e(S)\le s+2|S_1|+12+C_{\mathrm{bad}},
+\]
+and \cref{lem:lp2} gives $\frac75n+C$.
+
+\begin{remark}
+This regime genuinely needs the weighted \cref{lem:lp2}: a ``hexagonal strip'' around a single centre has average $\delta$-degree $3$ locally.
+\end{remark}
+
+\section{The degenerate regime \texorpdfstring{$\Delta>1.94\Dt$}{Delta > 1.94 Delta2}}\label{sec:degenerate}
+
+\begin{proposition}\label{prop:degenerate}
+If $\Delta>1.94\,\Dt$ and $n\ge4$, then $\mult(\Dt)\le n+1$.
+\end{proposition}
+
+Put $\kappa:=(\Dt/\Delta)^2<1/1.94^2$. Note that this section does not use $\delta$.
+
+\emph{Step 1: no two disjoint diametral pairs.} Suppose $(x,x')$ and $(z,z')$ are disjoint diametral pairs with midpoints $m,m'$. The four cross distances satisfy $\sum|ab|^2=2\Delta^2+4|m-m'|^2\ge2\Delta^2$, and each is either at most $\Dt$ or equal to $\Delta$. If at most one equals $\Delta$, the sum is at most $\Delta^2(1+3\kappa)<2\Delta^2$,\chk{C10} a contradiction. So at least two cross distances equal $\Delta$.
+\begin{itemize}[leftmargin=2em]
+\item If two disjoint cross pairs equal $\Delta$, say $|xz|=|x'z'|=\Delta$, then $z$ and $x'$ are the two points of $\Cc(x,\Delta)\cap\Cc(z',\Delta)$, so $x,z,z',x'$ form a rhombus of side $\Delta$ whose diagonals satisfy $d_1^2+d_2^2=4\Delta^2$. One diagonal is at least $\sqrt2\Delta$, a contradiction.
+\item If two cross pairs sharing a point equal $\Delta$, say $|xz|=|xz'|=\Delta$, then $xzz'$ is an equilateral triangle of side $\Delta$, and $x'\in\Cc(x,\Delta)$ with $|x'z|,|x'z'|\le\Delta$ lies on the $60^\circ$ arc of $\Cc(x,\Delta)$ between $z$ and $z'$, strictly inside it. One of $|x'z|,|x'z'|$ is at least $2\Delta\sin15^\circ$, and $(2\sin15^\circ)^2=2-\sqrt3>\kappa$,\chk{C10} so that distance lies in $(\Dt,\Delta)$, which is impossible.
+\end{itemize}
+
+\emph{Step 2: the diameter graph is a star.} A graph with no two disjoint edges is a star or a triangle. A triangle is impossible for $n\ge4$: a fourth point is not diametral, so it is within $\Dt$ of all three vertices, but $\Dt^2<\Delta^2/3$ is less than the squared circumradius.\chk{C10} So $D=\{y\}\cup A$ with $A$ the set of diametral partners of $y$; put $B:=X\setminus D\subseteq K$ and $W:=\{y\}\cup A$.
+
+\emph{Step 3: where the $\Dt$-pairs are.}
+\begin{itemize}[leftmargin=2em]
+\item \emph{Within $B$: none.} For $a\in A$, $K\subseteq\Dd(y,\Dt)\cap\Dd(a,\Dt)$, a lens whose bounding box has squared diagonal less than $0.24\,\Dt^2$.\chk{C10} So $\operatorname{diam}K<\Dt$.
+\item \emph{Within $A$: at most one.} $A\subseteq\Cc(y,\Delta)$, and its pairwise distances are at most $\Dt$ (a $\Delta$-pair inside $A$ would create a triangle in the diameter graph). A chord of $\Cc(y,\Delta)$ of length at most $\Dt<\Delta/1.94$ subtends an angle less than $30^\circ$ at $y$. So $A$ lies in an arc of angular width less than $60^\circ$, on which chord length is increasing in angular separation; a $\Dt$-pair in $A$ must realise the largest pairwise distance, hence be the two extreme points of $A$.
+\item \emph{Between $y$ and $A$: none}, as those distances equal $\Delta$.
+\end{itemize}
+Hence $\mult(\Dt)\le1+I$, where $I:=\#\{(b,w):b\in B,\ w\in W,\ |bw|=\Dt\}$.
+
+\emph{Step 4: $I\le|B|+|W|$.} We may assume $K$ has nonempty interior: an open chord between two points of $K$ lies in the interior of every disc $\Dd(w,\Dt)$, so otherwise $|B|\le|K\cap X|\le1$ and the bound is trivial. For $w\in X$ let $J_w:=\Cc(w,\Dt)\cap K$.
+\begin{itemize}[leftmargin=2em]
+\item \emph{Each $J_w$ is a single closed arc (possibly a point).} For $x\in X\setminus\{w\}$, $\Cc(w,\Dt)\cap\Dd(x,\Dt)$ is the closed arc $\{\cos(\theta-\theta_x)\ge|wx|/(2\Dt)\}$, of angular length at most $\pi$. For $p,q\in J_w$ we have $|pq|<\Dt<2\Dt$, so $p,q$ are not antipodal and the minor arc of $\Cc(w,\Dt)$ from $p$ to $q$ lies in every $\Dd(x,\Dt)$, hence in $K$. Since $\operatorname{diam}K<\Dt$, the angular spread of $J_w$ is less than $60^\circ$, so $J_w$ is a single closed arc.
+\item \emph{No point is interior to two arcs.} Suppose $b$ is a relative-interior point of a nondegenerate arc $J_w$ and $b\in\Cc(w',\Dt)$ with $w'\in X\setminus\{w\}$. The function $f(\theta)=|w+\Dt e(\theta)-w'|^2-\Dt^2=|w-w'|^2+2\Dt\,e(\theta)\cdot(w-w')$ is $\le0$ on $J_w$ (as $K\subseteq\Dd(w',\Dt)$) and vanishes at $b$, so it has an interior local maximum with value $0$. But every local maximum of this shifted cosine is its global maximum $|w-w'|^2+2\Dt|w-w'|>0$, a contradiction.
+\item \emph{Consequences.} Each nondegenerate $J_w$ is a subarc of $\partial K$, and distinct nondegenerate arcs have disjoint relative interiors. So a point $b\in B$ lies on at most two nondegenerate $W$-arcs (one on each side); any further incidences of $b$ come from degenerate arcs $J_w=\{b\}$.
+\item \emph{Counting.} Let $I_{\mathrm{nd}}$ be the number of incidences from nondegenerate arcs. Then $I_{\mathrm{nd}}\le|B|+\#\{b:\text{two $W$-arcs meet at }b\}$. Mapping each such $b$ to the $W$-arc that starts at $b$ in the clockwise direction is injective, so $I_{\mathrm{nd}}\le|B|+\#\{w:J_w\text{ nondegenerate}\}$. Each degenerate arc contributes at most one incidence. Hence $I\le|B|+|W|$.
+\end{itemize}
+Therefore $\mult(\Dt)\le1+|B|+|A|+1=n+1$, proving \cref{prop:degenerate}.
+
+\section{Assembly of the proof of Theorem 1}\label{sec:assembly}
+
+\begin{table}[ht]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}lll@{}}
+\toprule
+regime ($\delta=1$, $\beta=1/100$) & bound on $e(S)$ & bound on $\min\{\mult(\Dt),\mult(\delta)\}$\\
+\midrule
+degenerate: $\Delta>1.94\Dt$, $n\ge4$ & --- & $n+1$ (\cref{prop:degenerate})\\
+nondegenerate, $\Dt<10^4$ & --- & $3n<3N_0$ (\cref{sec:reductions})\\
+I: $\tau\le\sqrt3/2-2\beta$ (incl.\ $\tau\le0$) & $s+C$ & $\frac{18}{13}n+C$\\
+III: $\sqrt3/2-2\beta<\tau<\sqrt3/2+3\beta$ & $s+2|S_1|+C$ & $\frac75n+C$\\
+II: $\sqrt3/2+3\beta\le\tau<\cos(\beta/2)$ & $\frac54s+C$ & $\frac{36}{25}n+C$\\
+II: $\cos(\beta/2)\le\tau\le1$ & $\frac43s+C$ & $\frac{54}{37}n+C$\\
+II: $\tau>1$ ($\Leftrightarrow t>1$) & $s+C$ & $\frac{18}{13}n+C$\\
+\bottomrule
+\end{tabular}
+\caption{The regimes in the proof of Theorem 1; here $C<10^8$.}
+\end{table}
+
+The $\tau$-intervals partition $\R$, the split at $\Delta=1.94\,\Dt$ is exhaustive, and the cases $n\le3$ (or $X$ with a single distance) are trivial. Every constant in the last column is at most $54/37$,\chk{C1} and $n+1\le\frac{54}{37}n+1$. With $C<10^8$ from \cref{prop:bad}, Theorem~1 holds with $C_0=3N_0+10^8$. \qed
+
+\begin{remark}
+The two least standard parts of the argument are the ownership/pairing bookkeeping in \cref{sec:regions} and the incidence count in Step~4 of \cref{sec:degenerate}. Both were re-derived independently, and both were also checked by computer in abstract models (\cref{app:verification}). The bookkeeping check is exhaustive up to $6+6$ row vertices, and both (R2-sym) and the ``no three parallel rungs'' fact turn out to be necessary for it. We do not know whether $54/37$ is the limit of the method; the bottleneck is the near-resonant regime $\tau\ge\cos(\beta/2)$, where rhombi occur.
+\end{remark}
+
+\section{A layer bound and a new class of sets}\label{sec:layers}
+
+In this section $X$ is an arbitrary finite planar set with at least two distinct distances, $\Delta>\Dt$ are its two largest distances, and we scale so that $\Dt=1$. Every distance of $X$ is at most $1$ or equal to $\Delta$. $L_1$ is the set of extreme points of $X$ (vertices of $\conv X$), $L_2$ is the set of extreme points of $X\setminus L_1$, and $m_3:=n-|L_1|-|L_2|$. Let $G$ be the graph on $L_1\cup L_2$ whose edges are the $\Dt$-pairs, let $G'$ be its $2$-core (repeatedly delete vertices of degree less than $2$), and write $L_i':=L_i\cap V(G')$ and $\deg'=\deg_{G'}$. For $p\in X$ let $h(p)$ be the number of points of $X$ at distance $\Dt$ from $p$.
+
+\begin{lemma}[location]\label{lem:location}
+\begin{enumerate}[label=(\roman*)]
+\item Both endpoints of every $\Delta$-pair lie in $L_1$.
+\item Every $\Dt$-pair has an endpoint in $L_1$ and both endpoints in $L_1\cup L_2$.
+\end{enumerate}
+In particular $G$ contains every $\Dt$-pair of $X$.
+\end{lemma}
+\begin{proof}
+(i) If $|pq|=\Delta$ then $X\subseteq\Dd(q,\Delta)$ and $p$ lies on its boundary circle, so $p$ is an extreme point of $X$. (ii) Let $|pq|=1$. If $p\notin L_1$, then $p$ has no $\Delta$-partner by (i), so $X\subseteq\Dd(p,1)$ and $q$, lying on the boundary circle, is in $L_1$. So some endpoint, say $p$, lies in $L_1$. Suppose $q\notin L_1$. Every point $x$ with $|px|>1$ has $|px|=\Delta$ and so lies in $L_1$. Hence $X\setminus L_1\subseteq\Dd(p,1)$ with $q$ on the boundary circle, so $q$ is extreme in $X\setminus L_1$, i.e.\ $q\in L_2$.
+\end{proof}
+
+\begin{proposition}[core degree of $L_2$]\label{prop:core2}
+Every $q\in L_2'$ has $\deg'(q)=2$.
+\end{proposition}
+\begin{proof}
+Put $q=0$. Since $q$ is not extreme it has no $\Delta$-partner (\cref{lem:location}(i)), so $X\subseteq\Dd(0,1)$ and the $G$-neighbours of $q$ lie on the unit circle. Since $q\in V(G')$, $\deg'(q)\ge2$. Suppose $v_1,v_2,v_3$ are three distinct $G'$-neighbours of $q$. Each $|v_iv_j|$ is either at most $1$ or equal to $\Delta$. The argument follows the three cases of Vesztergombi's inner-point analysis~\cite[pp.~192--194]{Ve87}, with one change: we delete no points, and the contradiction in Cases~1 and~2 is with membership in the $2$-core, via $\deg_G\ge\deg'$.
+
+\emph{Case 3: at most one pair $v_iv_j$ at distance $\Delta$.} Label so that $|v_1v_2|,|v_2v_3|\le1$. Then $v_2$ lies on the shorter arc between $v_1$ and $v_3$, and in polar angle we may take $v_2$ at $0$, $v_1$ at $a$ and $v_3$ at $-b$ with $0<a,b\le60^\circ$. Since $q$ is not extreme, the closed half-plane $\{x:x\cdot v_2\le0\}$ contains a point $t\in X$, $t\ne q$. For $t\ne0$ with $t\cdot v_2\le0$ we get $|t-v_2|^2=|t|^2-2t\cdot v_2+1>1$, so $|tv_2|=\Delta$. By symmetry assume the polar angle $\varphi$ of $t$ lies in $[90^\circ,180^\circ]$. Then the angle between $t$ and $v_3$ is $\varphi+b\in(90^\circ,240^\circ]$, so $t\cdot v_3<0$ and $|tv_3|=\Delta$. Hence $t$ lies on the perpendicular bisector of $v_2v_3$, which passes through $0$, so $\varphi=180^\circ-b/2$. The angle between $t$ and $v_1$ is then $180^\circ-b/2-a\ge90^\circ$, so $|tv_1|^2\ge|t|^2+1>1$ and $|tv_1|=\Delta$. Now $v_1,v_2,v_3$ lie on both $\Cc(0,1)$ and $\Cc(t,\Delta)$, two distinct circles, which meet in at most two points. Contradiction. (This case uses only that $q$ is not extreme.)
+
+\emph{Case 2: exactly two pairs at $\Delta$.} Say $|v_1v_2|=|v_1v_3|=\Delta$ and $|v_2v_3|\le1$. Then $v_1$ lies on the perpendicular bisector of $v_2v_3$, and we may take $v_1=(-1,0)$, $v_{2,3}=(\cos a,\pm\sin a)$ with $0<a\le30^\circ$ and $\Delta=2\cos(a/2)$. We claim $v_1$ has no $\Dt$-neighbour $r\ne q$; then $\deg_G(v_1)=1$, contradicting $v_1\in V(G')$. Such an $r=(x,y)$ satisfies $|r-v_1|=1$ (so $|r|^2=-2x$), $|r|\le1$, and $|r-v_i|\in[0,1]\cup\{\Delta\}$ for $i=2,3$; by symmetry $y\ge0$. Write $c=\cos a$, $s_a=\sin a$.
+\begin{itemize}[leftmargin=2em]
+\item \emph{Both $|r-v_2|,|r-v_3|\le1$.} Impossible: $|r-v_3|^2-1=-2x(1+c)+2ys_a\ge0$, with equality only if $r=q$.
+\item \emph{$|r-v_2|=\Delta$} (the case $|r-v_3|=\Delta$ is symmetric). Using $|r|^2=-2x$, this condition is the linear equation $-2x(1+c)-2s_ay=1+2c$. Intersecting with the circle $|r-v_1|=1$ gives $x=\bigl(\pm s_a\sqrt{8c+7}-3(1+c)\bigr)/(4(1+c))$, so $|r|^2=\bigl(3(1+c)\mp s_a\sqrt{8c+7}\bigr)/(2(1+c))$. The root with $+s_a\sqrt{8c+7}$ in $|r|^2$ has $|r|^2\ge3/2$, outside the disc. For the other root, $|r|^2\le1\iff1+c\le s_a\sqrt{8c+7}\iff1+c\le(1-c)(8c+7)\iff c^2\le\frac34\iff a\ge30^\circ$. So only $a=30^\circ$ remains, and there $|r-v_3|^2=3+c-s_a\sqrt{8c+7}=2$, which lies strictly between $1$ and $\Delta^2=2+\sqrt3$. Forbidden.
+\item \emph{Both equal $\Delta$.} Then $r$ lies on the $x$-axis, so $r\in\{(0,0),(-2,0)\}$, and $(-2,0)$ is outside the disc.
+\end{itemize}
+
+\emph{Case 1: all three pairs at $\Delta$.} Then $v_1,v_2,v_3$ form an equilateral triangle with circumcentre $q$, and $\Delta=\sqrt3$. Let $P\ne q$ be a further $\Dt$-neighbour of some $v_i$, so $|P-v_i|=1$ and $|P|\le1$. It cannot have both other distances at most $1$: $|P-v_i|=1$ gives $|P|^2=2P\cdot v_i$, the two conditions give $P\cdot(v_i-v_j)\le0$ for $j\ne i$, and adding and using $\sum_jv_j=0$ gives $3P\cdot v_i\le0$, so $P=q$. Hence $|P-v_j|=\sqrt3$ for some $j\ne i$. Solving exactly, there are six candidate points, two for each $v_i$, each with $|P|^2=(9-\sqrt{33})/6$ and at squared distance $(7-\sqrt{33})/2\approx0.63$ from the third vertex, so each is a $\Dt$-neighbour of exactly one $v_i$. Their pairwise squared distances are $(29-5\sqrt{33})/6\approx0.046$ for three disjoint pairs (each joining candidates of different vertices), and otherwise $4/3$, $(9-\sqrt{33})/2\approx1.628$ or $(17-\sqrt{33})/6\approx1.876$, all strictly inside the forbidden interval $(1,3)$. So a set of candidates that can coexist in $X$ has at most two elements, at most two of the $v_i$ have a second $\Dt$-neighbour, and some $v_i$ has $\deg_G(v_i)=1$, contradicting $v_i\in V(G')$.
+
+With four or more neighbours apply the argument to any three. Hence $\deg'(q)\le2$, so $\deg'(q)=2$.
+\end{proof}
+
+\begin{lemma}[opposite-side lemma]\label{lem:M}
+Let $|pa|=|pb|=|br|=1$ with $r\neq p$. Suppose $a$ lies strictly on one side of the line $pb$ and $r$ does not lie strictly on that side. Then $|ar|>1$, so $|ar|=\Delta$.
+\end{lemma}
+\begin{proof}
+Put $p=0$, $b=(1,0)$, $a=(\cos A,-\sin A)$ with $0<A<\pi$, and $r=b+(\cos F,\sin F)$ with $0\le F\le\pi$; $F\ne\pi$ as $r\ne p$. Then $|r-a|^2-1=2(1+\cos F)(1-\cos A)+2\sin F\sin A$, where the first term is positive and the second nonnegative.
+\end{proof}
+
+\begin{lemma}\label{lem:F}
+Let $p$ be an extreme point of $X$ with $\Dt$-neighbours $w_1,\dots,w_k$ in angular order. Then $\deg_G(w_i)=1$ for every $3\le i\le k-2$.
+\end{lemma}
+\begin{proof}
+Since $p$ is extreme, some line through $p$ has $X\setminus\{p\}$ strictly on one side. So the directions of the $w_j$ from $p$ are distinct, lie in an open half-plane, and any two differ by less than $180^\circ$; for $j<i<l$, $w_j$ and $w_l$ lie strictly on opposite sides of the line $pw_i$. Suppose $r\ne p$ and $|rw_i|=1$. Put $p=0$, $w_i=(1,0)$. Then $w_{i-2},w_{i-1}$ lie strictly below the $x$-axis and $w_{i+1},w_{i+2}$ strictly above; by symmetry assume $r$ is not strictly below. Write $w_{i-2}=e(-\alpha_1)$, $w_{i-1}=e(-\alpha_2)$ with $0<\alpha_2<\alpha_1<180^\circ$. By \cref{lem:M}, $|rw_{i-2}|=|rw_{i-1}|=\Delta$, so $r$ lies on the perpendicular bisector of $w_{i-2}w_{i-1}$, the line through $0$ in direction $-\gamma$ with $\gamma=(\alpha_1+\alpha_2)/2\in(0^\circ,180^\circ)$. As $r\ne0$ is not below the axis, $r=\lambda e(180^\circ-\gamma)$ with $\lambda>0$. From $|r-w_i|=1$ we get $\lambda(\lambda+2\cos\gamma)=0$, so $\lambda=-2\cos\gamma$, whence $\gamma>90^\circ$ and $\alpha_1>90^\circ$. Then $|w_{i-2}w_i|=2\sin(\alpha_1/2)>\sqrt2>1$, so $|w_{i-2}w_i|=\Delta$. Let $\theta>0$ be the direction of $w_{i+1}$; then $\alpha_1+\theta<180^\circ$, and since the chord length $2\sin(x/2)$ is strictly increasing on $[0^\circ,180^\circ]$, $|w_{i-2}w_{i+1}|=2\sin((\alpha_1+\theta)/2)>2\sin(\alpha_1/2)=\Delta$, contradicting the maximality of $\Delta$.
+\end{proof}
+
+\begin{theorem}[degree at most $4$]\label{thm:deg4}
+Every $p\in L_1'$ has $\deg'(p)\le4$.
+\end{theorem}
+\begin{proof}
+Suppose $p\in L_1'$ has five $G'$-neighbours $u_1,\dots,u_5$ in angular order. Among the $G$-neighbours of $p$, $u_3$ has at least two on each side, so $u_3=w_i$ with $3\le i\le k-2$, and $\deg_G(u_3)=1$ by \cref{lem:F}. But $u_3\in V(G')$ forces $\deg_G(u_3)\ge2$.
+\end{proof}
+
+\begin{theorem}[layer bound]\label{thm:layer}
+For every finite $X\subset\R^2$ with at least two distinct distances,
+\[
+\mult(\Dt)\ \le\ |L_1|+|L_2|+\tfrac12\sum_{p\in L_1'}\bigl(\deg'(p)-2\bigr).
+\]
+\end{theorem}
+\begin{proof}
+By \cref{lem:location}, $\mult(\Dt)=e(G)$. Each deletion made while pruning $G$ to its $2$-core removes at most one edge, so $e(G)\le e(G')+|V(G)\setminus V(G')|$. By \cref{prop:core2}, $e(G')=\frac12\sum_{v\in V(G')}\deg'(v)=|V(G')|+\frac12\sum_{p\in L_1'}(\deg'(p)-2)$. Add the two estimates and use $|V(G)|=|L_1|+|L_2|$.
+\end{proof}
+
+\begin{corollary}\label{cor:A1}
+Assume \textup{(H3)}: no point of $L_1$ has four or more points of $X$ at distance $\Dt$. (This holds, for instance, if no four points of $X$ are concyclic.) Then
+\[
+\mult(\Dt)\le|L_1|+|L_2|+\tfrac12\#\{p\in L_1':\deg'(p)=3\}\le\tfrac32|L_1|+|L_2|.
+\]
+Consequently, under \textup{(H3)}, if $|L_1|\le2m_3$ then $\Delta$ and $\Dt$ are two distinct distances each occurring at least once and at most $n$ times.
+\end{corollary}
+\begin{proof}
+Under (H3), $2\le\deg'(p)\le h(p)\le3$ for $p\in L_1'$. The condition $\frac32|L_1|+|L_2|\le n$ is equivalent to $|L_1|\le2m_3$, and $\mult(\Delta)\le n$ by~\cite{HP34}.
+\end{proof}
+
+\begin{corollary}[unconditional form]\label{cor:uncond}
+For every finite $X$ with at least two distances,
+$\mult(\Dt)\le|L_1|+|L_2|+\frac12\sum_{p\in L_1}(\min\{h(p),4\}-2)^+$. Hence $\mult(\Dt)\le n$ whenever $\sum_{p\in L_1}(\min\{h(p),4\}-2)^+\le2m_3$.
+\end{corollary}
+\begin{proof}
+Combine \cref{thm:layer} with $2\le\deg'(p)\le\min\{h(p),4\}$ on $L_1'$ (\cref{thm:deg4}).
+\end{proof}
+
+\begin{remark}\label{rem:layers}
+\begin{enumerate}[leftmargin=2em,label=(\alph*)]
+\item \Cref{cor:A1} covers sets not covered by~\eqref{eq:cdl13}. For example, if $|L_1|=|L_2|=0.4n$ and $m_3=0.2n$, the three quantities in~\eqref{eq:cdl13} are $1.2n$, $1.33n$ and $1.2n$, while \cref{cor:A1} gives $\mult(\Dt)\le n$ (under (H3)). Of course~\eqref{eq:cdl13} needs no hypothesis like (H3).
+\item Using $\deg'\le4$, \cref{thm:layer} recovers the bound $2|L_1|+|L_2|$ of~\cite[Theorem~1.3]{CDL25}. \Cref{prop:core2} and \cref{thm:deg4} are the inputs from~\cite{Ve96} (Propositions~3 and~5--8 there, as used in~\cite{CDL25}) needed for this; we prove them directly in the $2$-core, without deleting points. We have not checked the other inputs used in~\cite{CDL25} for the first two bounds in~\eqref{eq:cdl13}.
+\item In \cref{cor:A1}, the bound $\frac32|L_1|+|L_2|$ is attained under (H3) alone by the following example, which we have checked numerically for $m=8,12,16$ (floating point): a regular $m$-gon with $m$ even, with a point at distance $\Dt$ from both endpoints of every other edge (CDL's ``servers''). These examples contain concyclic quadruples, so they do not bear on \cref{conj:C1} below.
+\end{enumerate}
+\end{remark}
+
+\section{Sets in convex position}\label{sec:convex}
+
+A set $X$ is in \emph{convex position} if every point of $X$ is a vertex of $\conv X$; in particular no three points of $X$ are collinear. Throughout this section $|X|=n$, $m:=\lfloor n/2\rfloor$, $N:=\binom n2$, $D=D(X)$ is the number of distinct distances, and $k=k(X)$ is the number of rare distances ($1\le\mult(d)\le n$). A distance is \emph{frequent} if $\mult(d)\ge n+1$. $R_N$ denotes the vertex set of a regular $N$-gon. By Hopf--Pannwitz, $\Delta$ is always rare; Clemen, Dumitrescu and Liu proved $k\ge2$ for $n\ge5$~\cite[Theorem~1.2]{CDL25}. For $n=5$ this is best possible: $R_5$ has $k=2$.
+
+\begin{theorem}\label{thm:convex-summary}
+Let $X$ be a set of $n$ points in convex position with $6\le n\le13$. Then at least three distinct distances each occur at least once and at most $n$ times. The same holds for every even $n\ge6$.
+\end{theorem}
+
+The cases have different status:
+\begin{itemize}[leftmargin=2em]
+\item $n=6,7,8$: a corollary of published results (\cref{prop:lit678}).
+\item even $n\ge10$: \cref{thm:even}, a parity-sharp version of the proof of~\cite[Theorem~1.2]{CDL25};
+\item $n=9$: \cref{thm:nine}, from the classification of Erd\H{o}s and Fishburn~\cite{EF96};
+\item $n=11,13$: \cref{thm:1113}, new and computer-assisted. The $n=7$ case is re-proved the same way, without the literature.
+\end{itemize}
+
+\subsection{Counting and the literature}
+
+\begin{lemma}[parity-sharp counting]\label{lem:counting}
+$(D-k)(n+1)+k\le N$. Consequently, if $n=2m+1$ and $D=m+K$ with $1\le K\le m+1$, then $k\ge K+1$; if $n=2m$ and $D=m+K$ with $1\le K<2m$, then $k\ge K+2$.
+\end{lemma}
+\begin{proof}
+The first inequality holds because frequent distances contribute at least $n+1$ pairs each and rare ones at least $1$. It gives $k\ge(D(n+1)-N)/n$. For $n=2m+1$ the right side is $K+(m+K)/(2m+1)$, with $0<(m+K)/(2m+1)\le1$. For $n=2m$ it is $K+1+K/(2m)$, with $0<K/(2m)<1$.
+\end{proof}
+
+We use the following results from the literature.
+\begin{itemize}[leftmargin=2em]
+\item[(Alt)] Altman~\cite{Alt63,Alt72}: $D\ge m$; for odd $n$, $D=m$ only for $R_n$ (see also~\cite[Theorem~1]{Fi95}).
+\item[(Fi)] Fishburn~\cite{Fi95}: for even $n\ge8$, $D=n/2$ if and only if $X$ is $R_n$ or $n$ vertices of $R_{n+1}$. For $n=6$ the hexagons with $D=3$ are $R_6$, $R_7$ minus a vertex, and one further hexagon~\cite[Theorem~2]{Fi95}, \cite{EF95b}, with multiplicity profiles $(6,6,3)$, $(5,5,5)$ and $(6,6,3)$ respectively (as recorded in~\cite[\S2]{CDL25}; we re-checked the profiles in exact arithmetic).
+\item[(EF96)] Erd\H{o}s--Fishburn~\cite{EF96}: a convex nonagon has exactly $5$ distances if and only if its vertices are $9$ vertices of $R_{10}$ or of $R_{11}$.
+\item[(r$_2$)] Erd\H{o}s--Fishburn~\cite[\S3]{EF95b}, quoting Fishburn's technical report~\cite{Fi92}: the largest possible second-largest multiplicity in a convex $n$-gon is $r_2^{(n)}=1,3,5,6,7,8$ for $n=3,\dots,8$.
+\end{itemize}
+A set on a circle has every distance class of maximum degree at most $2$, hence of size at most $n$; so for cocircular $X$ all distances are rare and $k=D$.
+
+\begin{proposition}[from the literature]\label{prop:lit678}
+For $n=6,7,8$ in convex position, $k\ge3$.
+\end{proposition}
+\begin{proof}
+By (r$_2$), $r_2^{(n)}\le n$ for $n\le8$, so at most one distance is frequent and $k\ge D-1$. By (Alt), $D\ge3$ for $n=6,7$ and $D\ge4$ for $n=8$. So $k\ge3$ unless $n\in\{6,7\}$ and $D=3$. For $n=7$, $D=3$ forces $R_7$ (profile $(7,7,7)$, $k=3$); for $n=6$, (Fi) gives the profiles $(6,6,3)$ and $(5,5,5)$, so $k=3$.
+\end{proof}
+The value $r_2^{(7)}=7$, and the other values of $r_2^{(n)}$, rest on an unrefereed technical report~\cite{Fi92} quoted in a refereed paper~\cite{EF95b}; for $n=7$ we give an independent proof in \cref{thm:1113}.
+
+\begin{theorem}[even $n$]\label{thm:even}
+Let $X$ be in convex position with $n=2m\ge6$. Then $k\ge3$. If $n\ge8$ and $k\le3$, then $D=m+1$.
+\end{theorem}
+\begin{proof}
+By (Alt), $D\ge m$. If $D\ge m+1$, \cref{lem:counting} gives $k\ge3$, and $k\ge4$ if $D\ge m+2$. If $D=m$ and $n=6$, (Fi) gives $k=3$. If $D=m$ and $n\ge8$, then $X$ is $R_n$, with profile $(n,\dots,n,n/2)$, or $n$ vertices of $R_{n+1}$, with profile $(n-1,\dots,n-1)$; in both cases $k=m\ge4$.
+\end{proof}
+\Cref{thm:even} is essentially the argument of~\cite[Theorem~1.2]{CDL25}, with the counting done with parity. It adds to the literature only for even $n\ge10$.
+
+\begin{theorem}[$n=9$]\label{thm:nine}
+Every set of $9$ points in convex position has $k\ge3$.
+\end{theorem}
+\begin{proof}
+Here $m=4$. If $D=4$, then $X=R_9$ by (Alt) and $k=4$. If $D=5$, then $X$ is cocircular by (EF96) and $k=D=5$. If $D\ge6$, \cref{lem:counting} gives $k\ge3$.
+\end{proof}
+
+\subsection{\texorpdfstring{$n=7,11,13$}{n = 7, 11, 13}: an ordinal reduction and SAT certificates}\label{sec:sat}
+
+Label $X=(p_0,\dots,p_{n-1})$ in convex cyclic order, let $d_1<\dots<d_D$ be the distinct distances, and colour each pair $\{i,j\}$ with $c(ij)=t$ where $|p_ip_j|=d_t$.
+
+\begin{lemma}[quadrilateral inequality]\label{lem:Q}
+For $i<j<k<l$ (in cyclic order), $|p_ip_k|+|p_jp_l|>|p_ip_j|+|p_kp_l|$ and $|p_ip_k|+|p_jp_l|>|p_jp_k|+|p_lp_i|$.
+\end{lemma}
+\begin{proof}
+The diagonals of the convex quadrilateral $p_ip_jp_kp_l$ meet at a point $O$ that lies on neither of the sides $p_ip_j$, $p_kp_l$. So $|p_ip_k|+|p_jp_l|=(|p_iO|+|Op_j|)+(|p_kO|+|Op_l|)>|p_ip_j|+|p_kp_l|$, by the strict triangle inequality. The other inequality is the same.
+\end{proof}
+
+\emph{Ordinal form.} Let $x_1\le x_2$ be the two diagonal colours, and $y_1\le y_2$ the colours of one pair of opposite sides. Then it is \emph{not} the case that $x_1\le y_1$ and $x_2\le y_2$, since otherwise $|p_ip_k|+|p_jp_l|\le$ the sum of the two sides. We call a colouring of the pairs of an $n$-cycle's vertex set satisfying this for all $4$-tuples and both pairs of opposite sides a \emph{Q-colouring}. This ordinal use of the quadrilateral inequality goes back to Altman~\cite{Alt63}. Abstracting a convex distance problem to a finite search in this way is the method of Mori\'c and Pritchard~\cite{MP11}, whose Fact~3.1 is \cref{lem:Q}.
+
+Some of our certificates also use a second valid constraint (\emph{Lemma T}): if $w\ne w'$ lie on the same open boundary arc between $p_i$ and $p_j$, then $(c(iw),c(jw))\ne(c(iw'),c(jw'))$, because a point is determined by its distances to $p_i,p_j$ and a side of the line $p_ip_j$.
+
+\begin{lemma}[reduction to profiles]\label{lem:R}
+If $k\le2$, then at least $D-2$ colour classes have size at least $n+1$, and $D\le D_{\max}(n)$, the largest $D$ with $(D-2)(n+1)+2\le N$. For $n=7,11,13,15$, $D_{\max}=4,6,7,8$.
+\end{lemma}
+
+Call a Q-colouring using exactly $D$ colours, all of them, with at least $F$ classes of size at least $n+1$, an \emph{$(n,D,F)$ ordinal counterexample}. Since \cref{lem:Q} (and Lemma T) are necessary for geometric realisability, the following suffices to prove $k\ge3$ for a given $n$: \emph{for every $2\le D\le D_{\max}(n)$ there is no $(n,D,D-2)$ ordinal counterexample.} (We check the smaller $D$ even where (Alt) would exclude them, so that no citation is needed; for $D\le4$ we check the stronger statement with $F=0$, i.e.\ no Q-colouring with $D$ colours at all.) No realisation step and no floating-point arithmetic enters.
+
+\begin{theorem}\label{thm:1113}
+Every set of $n$ points in convex position with $n\in\{7,11,13\}$ has at least three rare distances. For these $n$, the ordinal quadrilateral inequality (\cref{lem:Q}) alone implies the statement.
+\end{theorem}
+\begin{proof}[Proof (computer-assisted)]
+By \cref{lem:R} it suffices that the following instances have no ordinal counterexample:
+\begin{itemize}[leftmargin=2em]
+\item $n=7$: $(7,2,0)$, $(7,3,1)$, $(7,4,2)$;
+\item $n=11$: $(11,2,0)$, $(11,3,0)$, $(11,4,0)$, $(11,5,3)$, $(11,6,4)$;
+\item $n=13$: $(13,2,0)$, $(13,3,0)$, $(13,4,0)$, $(13,5,0)$, $(13,6,4)$, $(13,7,5)$.
+\end{itemize}
+Each is encoded in CNF and shown unsatisfiable, with the refutation checked as described below and in \cref{app:verification}.
+\end{proof}
+
+\subsubsection*{Encoding}
+Variables $x_{e,c}$ say that pair $e$ has colour $c$; there are exactly-one constraints per pair and at-least-one constraints per colour. In the \emph{direct} encoding of \cref{lem:Q}, each dominated $4$-tuple of colours is forbidden. In the \emph{order} encoding, auxiliary literals $y_{e,t}\Leftrightarrow c(e)\ge t$ are introduced and ``$c(a)\le t\le c(b)$ and $c(a')\le u\le c(b')$'' is forbidden for both diagonal/side matchings; this is equivalent, since sorted domination holds if and only if some matching dominates. Selector variables $f_c$ imply ``class $c$ has at least $n+1$ pairs'' through sequential counters, and $\sum_cf_c\ge F$.
+
+\subsubsection*{Certification}
+\begin{itemize}[leftmargin=2em]
+\item \emph{DRAT/LRAT.} For every instance with $n=11$ and $n=13$ listed above, and for $(7,4,2)$, a DRUP proof produced by Glucose~4~\cite{glucose} was verified by \texttt{drat-trim}~\cite{drattrim}, which also emitted an LRAT proof that was re-verified by \texttt{lrat-check}~\cite{lrat}. The largest certificate, for $(13,7,5)$, has $446{,}686$ lemmas (a 37\,MB DRUP proof and an 82\,MB LRAT proof). For $n=13$ all instances were certified in the Q-only encoding. For $n=11$, $(11,6,4)$ was certified in the Q-only encoding ($35{,}510$ lemmas), and $(11,2..5,\cdot)$ in the encoding with Q and Lemma~T (Q-only is covered by the Lean proof below). A truncated proof is correctly rejected. On this route, the trusted components are the CNF encoder (a short Python program, cross-validated as in \cref{app:verification}) and the proof checkers.
+\item \emph{$n=7$ without SAT.} A plain backtracking enumeration of all colourings, with Q checked as soon as its pairs are assigned, finds no ordinal counterexample for $D=2,3,4$. For $D=4$ it does so with Lemma~T switched off.
+\item \emph{Lean~4.} The statements for $n=7$, $11$ and $13$ are formalised in Lean~4~\cite{lean4} with Mathlib~\cite{mathlib}; see below.
+\end{itemize}
+
+\subsubsection*{The Lean formalisation ($n=7$, $11$, $13$)}
+The file \texttt{Erdos/Erdos/E132Convex.lean} proves, without \texttt{sorry},
+\begin{center}
+\texttt{theorem erdos132\_convex7 (p : Fin 7 $\to$ EuclideanSpace $\R$ (Fin 2)) (hp : StrictConvexPolygon p) : 3 $\le$ (rareDists p).card}
+\end{center}
+and the analogous \texttt{erdos132\_convex11} and \texttt{erdos132\_convex13} (file \texttt{E132Convex13.lean}) for \texttt{Fin 11} and \texttt{Fin 13}. Here \texttt{StrictConvexPolygon p} means that \emph{every} index-increasing triple $(p_i,p_j,p_k)$, $i<j<k$, is positively oriented; that is, the vertices are given as a strictly convex polygon listed counter-clockwise. \texttt{rareDists p} is the set of distances realised by pairs $i<j$ with multiplicity at most $n$. The proof formalises \cref{lem:Q} (via the intersection point of the diagonals and strict convexity of the Euclidean norm), the passage to ranks and Q-colourings, \cref{lem:R}, and the correctness of a bit-vector encoding of the finite statement ``every Q-colouring with colours below $D_{\max}$ has at least three classes of size in $[1,n]$''. This covers all $D\le D_{\max}$ at once, with unused colours allowed. The finite statement is closed by Lean's \texttt{bv\_decide}, which bit-blasts the formula with a verified bit-blaster, calls the bundled SAT solver CaDiCaL, and checks the resulting LRAT certificate with a checker that is proved correct in Lean.
+
+\emph{Trust base.} \texttt{\#print\allowbreak{} axioms} reports, for each theorem, the standard axioms \texttt{propext}, \texttt{Classical.choice}, \texttt{Quot.sound}, plus one axiom generated by \texttt{bv\_decide} (\texttt{\dots\_native.\allowbreak bv\_decide.\allowbreak ax\_1\_14}). That axiom asserts that the verified LRAT checker \texttt{verifyBVExpr} returns \texttt{true} on the concrete formula and certificate. The value \texttt{true} is obtained by running compiled code, not by kernel reduction, so the trust base is comparable to that of \texttt{native\_decide}: it includes the Lean compiler and runtime. Neither our Python encoder, nor any external SAT solver, nor \texttt{drat-trim} is trusted on this route. An attempt to check the $n=7$ axiom statement by kernel reduction ran for more than 20 minutes without finishing and was stopped.
+
+\emph{Unordered point sets.} The file \texttt{E132ConvexFinset.lean} proves (using only the three standard axioms) that a finite set $S$ in convex position, in the sense of Mathlib's \texttt{ConvexIndependent}, can be listed as a \texttt{StrictConvexPolygon}. The proof sorts $S\setminus\{p_0\}$ by orientation about a point $p_0\in S$; a negatively oriented increasing triple would put a point of $S$ inside a triangle spanned by others. It also proves that the rare distances of $S$ (unordered pairs) coincide with \texttt{rareDists p} for any such listing. This gives \texttt{erdos132\_convex\{7,11,13\}\_finset}: for \texttt{S : Finset} with \texttt{S.card} $=n$ and \texttt{ConvexIndependent}, $3\le$ \texttt{(rareDistsS S).card}.
+
+\emph{The layer bound.} The results of \cref{sec:layers} are formalised in \texttt{E132Layer.lean} without \texttt{sorry}, and \texttt{\#print\allowbreak{} axioms} reports only \texttt{propext}, \texttt{Classical.choice} and \texttt{Quot.sound} (no \texttt{bv\_decide} or \texttt{native\_decide}). This covers the localisation of $\Dt$-pairs to $L_1\cup L_2$, the degree-$2$ property of $L_2$-vertices in the $2$-core, the bound $\deg\le4$ on hull vertices, Theorem~A, Corollary~A1 and its unconditional form. There $L_1$ is the set of extreme points of $X$, shown equal to the vertex set of $\operatorname{conv}X$, and the $2$-core is the largest subset with minimum degree at least $2$.
+
+\emph{The main theorem.} Theorem~1 is formalised in full in \texttt{E132Main*.lean}, \texttt{E132ConvexCurve.lean} and \texttt{E132Ve87.lean} (about 7{,}000 lines):
+\begin{center}
+\texttt{theorem erdos132\_main : $\exists$ C\textsubscript{0} : $\R$, $\forall$ X : Finset Pt, 2 $\le$ X.card $\to$ (min (mult X (dist2 X)) (mult X (minDist X)) : $\R$) $\le$ 54/37 * X.card + C\textsubscript{0}}
+\end{center}
+with \texttt{mult X d} the number of unordered pairs of distinct points of $X$ at distance $d$, and \texttt{dist2}, \texttt{minDist} the second-largest and smallest distance. There is no \texttt{sorry}, and \texttt{\#print\allowbreak{} axioms} reports only \texttt{propext}, \texttt{Classical.choice} and \texttt{Quot.sound}. The formalisation also proves Vesztergombi's bound $\mult(\Dt)\le\frac32n$ and the Hopf--Pannwitz bound, so no result is used as a black box. In three places it takes a different route from the text: (a) Vesztergombi's bound is proved in the $2$-core (every degree-$4$ core vertex has two degree-$2$ core neighbours, then double counting), with no point deletion; (b) the bad-edge bounds of \cref{sec:bad} are obtained by counting over directions of outward normals instead of arc length, so Lemma~5.2 (lens arc length) is not needed; (c) the degenerate-regime incidence bound uses a local charging argument, and the mixed-$T$ bound of Lemma~7.1 is proved in a weaker form (at most $1200$ instead of $71$), which only changes the constant $C_0$.
+
+\emph{Limitations of the formalisation.} (i) The \texttt{bv\_decide} axiom described above remains. (ii) Only the $n=7$ LRAT certificate (1.6\,MB) is stored and replayed with \texttt{bv\_check}; for $n=11,13$ the certificates (23\,MB and 97\,MB) are not stored, so compilation re-runs CaDiCaL (about 40\,s and 4\,min respectively). (iii) The paper's Lemma~5.2 is not formalised; the formal proof of the main theorem does not need it (see above).
+
+\begin{remark}\label{rem:ordinal}
+\begin{enumerate}[leftmargin=2em,label=(\alph*)]
+\item The method is tight at ``three'': $(11,6,3)$ is satisfiable (e.g.\ with class sizes $(12,9,12,12,6,4)$), as is $(9,5,2)$.
+\item The ordinal statement fails for $n=5,6$: $(6,3,1)$ has an ordinal solution with profile $(9,3,3)$, so at $n=6$ geometry beyond \cref{lem:Q} is needed.
+\item For $n=15$, all instances with $D\le7$ were found unsatisfiable by CaDiCaL (solver output only, not certified), but the hard instance $(15,8,6)$ was unresolved after more than 20 minutes. So $n=15$ is open.
+\item Theorem~\ref{thm:1113} for $n=7$ also follows from the literature (\cref{prop:lit678}).
+\end{enumerate}
+\end{remark}
+
+\begin{remark}[related work]
+Independently, a Lean project on the Lean Pool~\cite{lyfar} proves that for point sets with coordinates in certain restricted fields (e.g.\ $\mathbb Q(\sqrt2)$), $n\le2^r$ where $r$ is the number of rare distances. This gives at least three rare distances for $n\ge8$ in those coordinate fields; it neither implies nor is implied by \cref{thm:convex-summary}. Other contributions on the forum~\cite{forum132} concern the first question of Problem \#132 (at least two rare distances) for small $n$ and general sets.
+\end{remark}
+
+\section{Open problems}\label{sec:open}
+
+\subsection*{\texorpdfstring{Problem 1.6 of~\cite{CDL25}}{Problem 1.6 of CDL}}
+We now know $9/7\le L\le54/37$, i.e.\ $1.2857\ldots\le L\le1.4594\ldots$. The lower bound construction~\cite{ienjoymath} is conjectured there to be optimal. In our proof the constant $54/37$ comes only from the near-resonant regime $\tau\ge\cos(\beta/2)$ (the diameter exceeds $\Dt$ by almost exactly $\delta$); every other regime gives at most $36/25$. Improving the upper bound would therefore require a better treatment of that regime, for instance a bound on $\mult(\Dt)$ that uses the structure of $S$ there rather than only $\mult(\Dt)\le\frac32|S|$.
+
+\subsection*{Genericity}
+\begin{conjecture}\label{conj:C1}
+If no four points of $X$ are concyclic, then $\mult(\Dt)\le n+O(1)$. More strongly, the number of vertices of degree $3$ in the $2$-core $G'$ is $O(1)$.
+\end{conjecture}
+Together with \cref{thm:layer}, the stronger form would answer the first question of Problem \#132 for sets with no four concyclic points and with at least a constant number of points of depth at least $3$. An elementary observation, probably folklore, points in this direction: if $|ab|=|cd|=\Delta$ and $|ac|=|bd|=\Dt$, then $a,b,c,d$ are concyclic. (The triangles $abc$ and $dcb$ are congruent. A half-turn would make $abdc$ a parallelogram with $|ad|^2+|bc|^2=2(\Delta^2+\Dt^2)>2\Delta^2$, which is impossible, so $abdc$ is an isosceles trapezoid.) The known extremal configurations for $\mult(\Dt)$ contain such alternating $4$-cycles. We have only weak numerical evidence for \cref{conj:C1} (a greedy search).
+
+\subsection*{Convex position}
+\begin{conjecture}[Q-ORD]\label{conj:QORD}
+For every $n\ge7$, every Q-colouring of the pairs of $\{0,\dots,n-1\}$ has at least three colour classes of size at most $n$.
+\end{conjecture}
+Q-ORD holds for $7\le n\le13$ (\cref{thm:1113}), and it would imply that every set of $n\ge7$ points in convex position has at least three rare distances. For $n=15$ only $(15,8,6)$ remains. The solving time grows roughly tenfold for each increase of $n$ by $2$, so a proof for all $n$ must be human. Deletion-minimal refutations are not local ($(7,4,2)$ already needs $25$ of the $35$ quadrilaterals), so such a proof will have to be global.
+
+For odd $n=2m+1\ge7$ (no computation needed), \cref{lem:counting} and (Alt) show that a convex set with $k\le2$ must have $D=m+1$, $k=2$ and $m-1$ frequent distances. Moreover, writing the frequent multiplicities as $2m+2+e_d$ and the two rare ones as $a,b$, the identity $a+b+\sum_de_d=m+2$ holds. (Indeed $D=m$ gives $R_n$ with $k=m\ge3$, $D\ge m+2$ gives $k\ge3$, and the identity is $(m-1)(2m+2)+\sum e_d+a+b=m(2m+1)$.) So for odd $n\ge15$ the question in convex position is about this single kind of configuration. Beyond three, the second question of Problem \#132 asks whether $k\to\infty$; this is open even in convex position.
+
+\appendix
+\section{Computational verification}\label{app:verification}
+
+All scripts are in the directory \texttt{problems/132/scripts/} of the accompanying repository \placeholder{REPOSITORY URL}. None of the computations below is used as a proof step, except the SAT/LRAT certificates and the Lean proof for \cref{thm:1113}. The rest are independent checks of hand-proved steps. Tags \chk{Ck} in the text refer to sections of \texttt{writeup\_a2\_checks.py}.
+
+\subsection*{Theorem 1}
+\begin{itemize}[leftmargin=2em]
+\item \texttt{writeup\_a2\_checks.py}: 58 assertions in exact rationals and rational interval arithmetic, with one-sided rational bounds for $\sqrt{\cdot}$, $\pi$, $\sin$, $\cos$, $\arcsin$. Sections: C1 the LP certificates of \cref{lem:lp,lem:lp2}; C2 the identity of \cref{lem:identities}(c) and the relation between $\tau$ and $t$; C3 small-angle facts for $\Dt\ge10^4$; C4 the Region~I windows; C5 the Region~II constants ((R1), (R2), (R2-sym), mixed T-edges, rhombus threshold, pairing ratio); C6 the corner lemma; C7 the lens constants; C8 case (c2); C9 the bad-edge totals; C10 the degenerate-regime constants; C11 the small-case packing bound. All pass.
+\item \texttt{ref2\_numeric.py}: an independent set of 40 exact assertions (second referee pass) covering the same inequalities, together with an adversarial floating-point search for (R1), (R2), (R2-sym). The search is reported, not asserted. Its maxima were $0.906$, $0.897$ and $0.914$, against the proved bounds $0.908$, $0.918$ and $0.948$.
+\item \texttt{ref2\_ownership.py}: an exhaustive exact check of the ownership/pairing bookkeeping in \cref{sec:regions}, in the abstract model the argument uses: rows that are disjoint unions of paths and cycles of length $\ge3$, rungs forming a matching, (R2), (R2-sym), and no two consecutive rhombi. It covers all row structures up to isomorphism with at most $6$ vertices per row and all partial rung matchings. There were $2{,}365{,}426$ admissible configurations without rhombi, with maximum ratio exactly $5/4$, and $2{,}741{,}183$ with rhombi allowed, with maximum ratio exactly $4/3$. Mutation tests show that (R2-sym) and the rule excluding two consecutive rhombi are both needed.
+\item \texttt{ref\_degen.py}, \texttt{degen\_check.py}, \texttt{ref2\_degen.py}: adversarial searches in the degenerate regime, including $5500$ configurations built so that three or more circles $\Cc(w,\Dt)$ pass through one vertex of $\partial K$. The maximum of $\mult(\Dt)-n$ found was $0$, against the proved bound $1$.
+\item \texttt{ref\_checks.py}, \texttt{a2\_checks.py}: random tests of the lens lemma (about $7000$ lenses, worst ratio $0.66$) and of the exact single-centre strip in the near-resonant regime.
+\end{itemize}
+The whole proof was also checked twice more, independently, in adversarial ``referee'' passes. Vesztergombi's theorem~\cite{Ve87} was checked in the original: its main theorem is $\mult(\Dt)\le\frac32n$ for all $n$, with no additive constant.
+
+\subsection*{\texorpdfstring{Section~\ref{sec:layers}}{Layer bound}}
+\begin{itemize}[leftmargin=2em]
+\item \texttt{va1b\_exact.py} (sympy, mpmath interval arithmetic): exact computation of the six Case~1 candidates of \cref{prop:core2} and their pairwise squared distances, with an exhaustive check that no compatible set of candidates covers all three $v_i$. It also gives a closed form and a rigorous interval check ($6000$ subintervals, $0$ failures) of the Case~2 branch $|r-v_2|=\Delta$.
+\item \texttt{va1c\_sympy.py}: symbolic checks of the identity in \cref{lem:M}, of $\lambda(\lambda+2\cos\gamma)=0$, of the chord formula, and of the bisector direction in \cref{lem:F}.
+\item \texttt{va1c\_local.py}: exhaustive search for the configuration of \cref{lem:F} with unit vectors from $\mathbb Z[\omega]$ (norm $\le147$, exact), $\mathbb Z[i]$ (norm $\le325$, exact) and $N$-th roots of unity ($5\le N\le60$): $0$ hits in about $3.2\cdot10^6$ configurations. A control run with weakened hypotheses does find hits.
+\item \texttt{va1\_clique.py}, \texttt{va1\_cyclo.py}, \texttt{va1c\_random.py}: searches over maximal compatible sets in lattice and cyclotomic pools, plus greedy floating-point constructions. Every set was tested against \cref{lem:location}, \cref{prop:core2}, \cref{thm:deg4}, \cref{thm:layer} and \cref{cor:A1,cor:uncond}: more than $800{,}000$ sets in the first searches and about $81{,}000$ in the second, with $0$ violations.
+\end{itemize}
+
+\subsection*{\texorpdfstring{Section~\ref{sec:convex}}{Convex position}}
+\begin{itemize}[leftmargin=2em]
+\item \texttt{ver\_classification\_k.py}, \texttt{ver\_hexagons.py}: exact chord-index profiles for the classified extremal sets used in \cref{thm:even,thm:nine,prop:lit678}, and strict convexity and multiplicity profiles of the three $3$-distance hexagons.
+\item \texttt{counting\_parity.py}: the closed forms of \cref{lem:counting} for $n<400$.
+\item \texttt{b3\_sat.py}: the CNF encoder (direct and order encodings, with or without Lemma~T). \texttt{b3\_enum.py}: the standalone backtracking enumerator for $n=7$.
+\item \texttt{b3\_validate.py}: encoder validation. Every $7$-subset of $R_N$, $7\le N\le16$ ($11{,}440$ sets), and every $11$-subset of $R_N$, $N\le15$, satisfies all constraints under exact chord-index ranks, as do $3000$ (for $n=7$) and $500$ (for $n=11$) random convex polygons. The $(7,3,0)$ enumeration returns exactly the $R_7$ colouring. Every satisfying assignment printed by the SAT route was re-checked against the independent constraint code of \texttt{b3\_enum.py}.
+\item Four solvers (CaDiCaL, Glucose~4, MiniSat~2.2, Lingeling) agree on the $n=7$ and $n=11$ instances.
+\item \texttt{b3\_drup\_check.py}: an independent forward RUP checker, used for the $n=7$, $n=9$ and $n=11$ DRUP proofs. Its self-test rejects an empty proof of a satisfiable instance, a proof with one negated lemma, and a truncated proof.
+\item \texttt{b3\_drat\_trim.py}: regenerates each CNF and Glucose proof deterministically and runs \texttt{drat-trim} with LRAT output, followed by \texttt{lrat-check}. The CNF, DRUP and LRAT files are not stored in the repository because of their size.
+\end{itemize}
+
+\begin{table}[ht]
+\centering
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}llrll@{}}
+\toprule
+instance $(n,D,F)$ & encoding & lemmas & \texttt{drat-trim} & \texttt{lrat-check}\\
+\midrule
+$(7,4,2)$ & Q & 714 & verified & verified\\
+$(11,2,0)$, $(11,3,0)$, $(11,4,0)$ & Q+T & 3, 8, 56 & verified & verified\\
+$(11,5,3)$ & Q+T & 524 & verified & verified\\
+$(11,6,4)$ & Q & 35,510 & verified & verified\\
+$(13,2,0)$, $(13,3,0)$, $(13,4,0)$, $(13,5,0)$ & Q & 2, 7, 82, 448 & verified & verified\\
+$(13,6,4)$ & Q & 8,463 & verified & verified\\
+$(13,7,5)$ & Q & 446,686 & verified & verified\\
+\bottomrule
+\end{tabular}
+\caption{Certified refutations for \cref{thm:1113}.}
+\end{table}
+
+\emph{Lean.} The whole development (all \texttt{E132*.lean} files: the convex-position results, the layer bound, Vesztergombi's and Hopf--Pannwitz's bounds, and the main theorem) builds with \texttt{lake exe cache get} followed by \texttt{lake build}; on a laptop this takes about 6 minutes after the Mathlib cache is downloaded, of which about 4 minutes is \texttt{bv\_decide} for $n=13$. The toolchain is Lean \texttt{v4.35.0-rc2} with Mathlib.
+
+\bibliographystyle{amsplain}
+\bibliography{refs}
+
+\end{document}
