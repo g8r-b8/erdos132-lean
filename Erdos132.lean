@@ -9,3 +9,9 @@ import Erdos132.E132MainLocal
 import Erdos132.E132MainRegions
 import Erdos132.E132MainDegen
 import Erdos132.E132Main
+import Erdos132.E132Main15Defs
+import Erdos132.E132Main15N1
+import Erdos132.E132Main15RegionII
+import Erdos132.E132Main15Exact
+import Erdos132.E132Main15RegionIII
+import Erdos132.E132Main15

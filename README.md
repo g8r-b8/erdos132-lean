@@ -10,23 +10,42 @@ The author used an AI assistant (Claude, Anthropic) for exploration, computation
 
 ## What is proved
 
-**Summary.** The paper (v2) proves `L ≤ 15/11` for Clemen–Dumitrescu–Liu's Problem 1.6, and `4/3` in Region II.
-The Lean formalisation in this repository covers the earlier bound `54/37` (Theorem 1 below, fully formalised).
-A Lean formalisation of `15/11` is in progress and not yet included. The paper also proves `k ≥ 3` rare distances
+**Summary.** The paper (v2) proves `L ≤ 15/11` for Clemen–Dumitrescu–Liu's Problem 1.6 (Theorem 1(a)), and `4/3`
+in Region II (Theorem 1(b)). **Theorem 1(a), the `15/11` bound, is fully formalised in Lean** (standard axioms only;
+the compiled modules also pass `leanchecker`). Theorem 1(b) is not formalised. The earlier, weaker bound `54/37`
+(Appendix B of the paper) is also fully formalised. The paper also proves `k ≥ 3` rare distances
 for convex sets with `6 ≤ n ≤ 18`, and a linear lower bound for almost-cocircular convex sets (see the paper).
 
 Throughout, `X ⊂ ℝ²` is finite with `|X| = n`, `Δ`, `Δ₂` and `δ` are the largest, second-largest and smallest
 distances determined by `X`, and `μ(d)` is the number of unordered pairs of `X` at distance `d`.
 
-### Theorem 1 (the 54/37 bound): fully formalised, standard axioms only
+### Theorem 1(a) (the 15/11 bound): fully formalised, standard axioms only
 
 Clemen, Dumitrescu and Liu (Problem 1.6) asked for
 `L = limsup_{n→∞} max_{|X|=n} min{μ(Δ₂), μ(δ)} / n`. The known bounds were `9/7 ≤ L ≤ 3/2`, the upper bound
 coming from Vesztergombi's inequality `μ(Δ₂) ≤ 3n/2`. We prove
 
-    min{μ(Δ₂), μ(δ)} ≤ (54/37)·n + C₀      for an absolute constant C₀,
+    min{μ(Δ₂), μ(δ)} ≤ (15/11)·n + C₀      for an absolute constant C₀,
 
-so `L ≤ 54/37 < 3/2`. In Lean (`Erdos132/E132Main.lean`, `Pt = EuclideanSpace ℝ (Fin 2)`):
+so `L ≤ 15/11 < 3/2`. In Lean (`Erdos132/E132Main15.lean`, `Pt = EuclideanSpace ℝ (Fin 2)`):
+
+```lean
+theorem Erdos132Main.erdos132_main15 :
+    ∃ C₀ : ℝ, ∀ X : Finset Pt, 2 ≤ X.card →
+      (min (mult X (dist2 X)) (mult X (minDist X)) : ℝ) ≤ 15 / 11 * X.card + C₀
+```
+
+The six `E132Main15*.lean` files (about 5,300 lines) build on the `54/37` development below, which they import
+unchanged. The constant is the same explicit `C₀ = 5·10⁹`. The refinement `4/3` in Region II (Theorem 1(b) of the
+paper, via Theorem N2) is **not** formalised; it is not needed for `15/11`.
+
+### The 54/37 bound: fully formalised, standard axioms only
+
+The paper's Appendix B proves the weaker bound
+
+    min{μ(Δ₂), μ(δ)} ≤ (54/37)·n + C₀,
+
+by a different argument in Regions II and III and without the `R`-term bound. In Lean (`Erdos132/E132Main.lean`):
 
 ```lean
 theorem Erdos132Main.erdos132_main :
@@ -73,7 +92,15 @@ n = 11 and n = 13 run the bundled CaDiCaL on every build (their certificates, 23
 The `#print axioms` commands are at the end of the respective files, so `lake build` prints them.
 
 ```
+'Erdos132Main.erdos132_main15' depends on axioms: [propext, Classical.choice, Quot.sound]
 'Erdos132Main.erdos132_main' depends on axioms: [propext, Classical.choice, Quot.sound]
+```
+
+The six `E132Main15*` modules were also replayed with the kernel checker `leanchecker` (shipped with the
+toolchain), which re-checks every declaration of a compiled module:
+
+```sh
+for m in Defs N1 RegionII Exact RegionIII ""; do lake env leanchecker Erdos132.E132Main15$m; done
 ```
 
 `E132Ve87.lean` (`ve87`, `vesztergombi87`) and `E132Layer.lean` (`theoremA`, `corA1`, `corA1_uncond`,
@@ -113,8 +140,8 @@ Older toolchains used `Lean.ofReduceBool` for the same step; the trust base is t
 The axiom states that Lean's LRAT checker `verifyBVExpr`, which is itself proved correct in Lean together with
 the bit-blaster and the AIG→CNF translation, returns `true` on these concrete inputs. The `true` comes from
 running the compiled checker, not from the kernel. Trusted: the Lean compiler and runtime. **Not** trusted:
-CaDiCaL, the Python CNF encoder `scripts/b3_sat.py`, drat-trim. None of them is involved. Theorem 1,
-Vesztergombi, Hopf–Pannwitz and the layer bound use neither `bv_decide` nor `native_decide`.
+CaDiCaL, the Python CNF encoder `scripts/b3_sat.py`, drat-trim. None of them is involved. The `15/11` and `54/37`
+bounds, Vesztergombi, Hopf–Pannwitz and the layer bound use neither `bv_decide` nor `native_decide`.
 
 ## Building and checking
 
@@ -123,15 +150,17 @@ up from `lean-toolchain`; Mathlib is pinned to tag `v4.35.0-rc2` (rev `065356127
 
 ```sh
 lake exe cache get     # download prebuilt Mathlib
-lake build             # builds all 11 modules and prints the #print axioms output
+lake build             # builds all 17 modules and prints the #print axioms output
 ```
 
-Build time (Apple silicon laptop, 16 GB RAM, Mathlib from cache): about 6 minutes wall-clock for all 11 modules
-(peak about 3 GB RSS). The slowest module is `E132Convex13.lean`, about 4 minutes on its own (CaDiCaL + LRAT check
+Build time (Apple silicon laptop, 16 GB RAM, Mathlib from cache): about 7 minutes wall-clock for all 17 modules
+(peak about 3 GB RSS); the six `E132Main15*` modules take about 1 minute on top of the `54/37` development.
+The slowest module is `E132Convex13.lean`, about 4 minutes on its own (CaDiCaL + LRAT check
 for n = 13). To skip it, build only the modules you need:
 
 ```sh
-lake build Erdos132.E132Main           # Theorem 1 (+ Vesztergombi, Hopf–Pannwitz, layer bound)
+lake build Erdos132.E132Main15         # 15/11 bound (+ 54/37, Vesztergombi, Hopf–Pannwitz, layer bound)
+lake build Erdos132.E132Main           # 54/37 bound (+ Vesztergombi, Hopf–Pannwitz, layer bound)
 lake build Erdos132.E132ConvexFinset   # n = 7, 11
 lake build Erdos132.E132Convex13       # n = 13 (about 4 min)
 ```
@@ -155,7 +184,13 @@ the remaining occurrences of the word are in comments.
 | `Erdos132/E132MainLocal.lean` | local geometry: exact identities, T-edges, rungs, (R1)/(R2)/(R3), corner lemma, bad-edge bounds |
 | `Erdos132/E132MainRegions.lean` | Regions I, II, III; ownership/pairing bookkeeping |
 | `Erdos132/E132MainDegen.lean` | degenerate regime `Δ > 1.94 Δ₂` |
-| `Erdos132/E132Main.lean` | assembly: `erdos132_main` |
+| `Erdos132/E132Main.lean` | assembly of the `54/37` bound: `erdos132_main` |
+| `Erdos132/E132Main15Defs.lean` | definitions for the `15/11` bound (`degδ`, `mS`, two-rung vertices, breaks, slots, constants), the exact identity for `μ(δ)`, the linear combination `lp15` |
+| `Erdos132/E132Main15N1.lean` | Theorem N1 (`m_y ≤ 4` for all but `10⁷` points of `R`) in Euclidean-local form; `E_bound15` |
+| `Erdos132/E132Main15RegionII.lean` | Lemmas A, B, C; Region II: `e(S) ≤ |S| + |P₁| + C` |
+| `Erdos132/E132Main15Exact.lean` | the case `τ = √3/2` of Region III: circle-arc rigidity and `exact_breaks` |
+| `Erdos132/E132Main15RegionIII.lean` | Region III by slots (`τ < √3/2`) and breaks (`τ = √3/2`) |
+| `Erdos132/E132Main15.lean` | assembly: `erdos132_main15` |
 | `paper/` | `paper.tex`, `refs.bib`, `paper.pdf` |
 | `scripts/` | verification scripts cited in the paper's appendix (see below) |
 
@@ -174,7 +209,31 @@ the paper. The paper refers to the directory as `problems/132/scripts/`; in this
 
 ## Deviations of the formalisation from the paper
 
-The Lean proof of Theorem 1 follows the paper's proof, with these differences:
+### The 15/11 bound
+
+The Lean proof of Theorem 1(a) follows Sections 2–8 of the paper, reusing the `54/37` development for the set-up,
+bad edges, Region I, the corner lemma and the degenerate regime (with the deviations listed further below). It
+differs from the text in these places:
+
+- **Theorem N1 without arc length.** The paper's arc `γ_y` and the concave-graph description of the flat case are
+  replaced by a Euclidean-local split at `y ∈ R ∖ D`, by the outer normals of `K` at `∂K ∩ B̄(y,1)`: *flat* (all
+  within `1/4` of one unit vector `ν`; then every `S`-neighbour `q` has `(q−y)·ν > −1/4`, and an open arc of angle
+  `2 arccos(−1/4) < 240°` holds at most 4 points `60°` apart, so `m_y ≤ 4`); *thin* (two nearly opposite normals;
+  the paper's fatness step puts `K` in a bounded box, so `|X ∖ D|` is bounded); *big turning* (otherwise the
+  turning of `∂K ∩ B̄(y,150)` is at least `1/4`, which happens for `O(1)` points). Exceptional set: at most `10⁷`
+  points (paper: `7.1·10⁷`).
+- **Region III by slots and breaks.** For `τ < √3/2` the bound `#T ≤ |S| − q₂ + C` is proved by counting free
+  *slots* (`card_tEdges_slots`, with the paper's slot-killing lemma); at `τ = √3/2` by counting *breaks*, points
+  without a pure right T-neighbour (`exact_breaks`, with the paper's circle-arc rigidity). The paper's lemma
+  "rows are cyclic orders" is not used.
+- **Lemma C by exact reflection.** Instead of the angle estimate of the text, the T-step is decomposed exactly with
+  respect to the reflection exchanging the two `Δ₂`-partners, and Lemma B's threshold is applied to both.
+- **Region II** uses the rung K-ends of `Δ₂`-degree 1 (`P1set`) in the role of `Q`, as in the `54/37` Region III.
+- **Not formalised:** Theorem N2 and hence Theorem 1(b) (`4/3` in Region II).
+
+### The 54/37 bound (and shared parts)
+
+The Lean proof of the `54/37` bound follows the paper's Appendix B, with these differences:
 
 - **Vesztergombi's inequality is proved, not cited** (`E132Ve87.lean`, 2-core double counting on the `Δ₂`-graph
   of `L₁ ∪ L₂`). Hopf–Pannwitz is proved in `E132MainDefs.lean`.
@@ -189,8 +248,9 @@ The Lean proof of Theorem 1 follows the paper's proof, with these differences:
 - **Conventions.** `mult` counts unordered pairs of distinct points; `diam`, `dist2`, `minDist` are `0` when
   undefined, so the only hypothesis is `2 ≤ X.card`.
 
-Some docstrings in the `E132Main*` files date from the skeleton phase of the formalisation and still mention
-remaining `sorry`s or a cited `vesztergombi87`. They are historical; the `#print axioms` output is authoritative.
+Some docstrings in the `E132Main*` and `E132Main15*` files date from the skeleton phase of the formalisation and
+still mention remaining `sorry`s, `TODO`s, a cited `vesztergombi87`, or internal planning notes that are not part of
+this repository. They are historical; the `#print axioms` output is authoritative.
 
 ## License
 
