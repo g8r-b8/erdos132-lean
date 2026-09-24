@@ -3,12 +3,17 @@
 Lean 4 / Mathlib formalisation, paper and verification scripts for
 
 > **Wingate Jones**, *Second-largest and minimum distance multiplicities in planar point sets:
-> an upper bound below 3/2, and related results on Erdős Problem #132* (2026).
+> an upper bound of 15/11, and related results on Erdős Problem #132* (2026).
 > The paper is in [`paper/`](paper/) (`paper.pdf`, source `paper.tex`, `refs.bib`).
 
 The author used an AI assistant (Claude, Anthropic) for exploration, computation, formalisation and drafting.
 
 ## What is proved
+
+**Summary.** The paper (v2) proves `L ≤ 15/11` for Clemen–Dumitrescu–Liu's Problem 1.6, and `4/3` in Region II.
+The Lean formalisation in this repository covers the earlier bound `54/37` (Theorem 1 below, fully formalised).
+A Lean formalisation of `15/11` is in progress and not yet included. The paper also proves `k ≥ 3` rare distances
+for convex sets with `6 ≤ n ≤ 18`, and a linear lower bound for almost-cocircular convex sets (see the paper).
 
 Throughout, `X ⊂ ℝ²` is finite with `|X| = n`, `Δ`, `Δ₂` and `δ` are the largest, second-largest and smallest
 distances determined by `X`, and `μ(d)` is the number of unordered pairs of `X` at distance `d`.
