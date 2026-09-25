@@ -10,26 +10,46 @@ The author used an AI assistant (Claude, Anthropic) for exploration, computation
 
 ## What is proved
 
-**Summary (paper v3).** The paper proves `L ≤ 4/3` for Clemen–Dumitrescu–Liu's Problem 1.6; `21/16` when τ ≤ √3/2 − 1/50 or τ ≥ √3/2 + 3/100; and `9n/7 + O(n^{2/3})` for τ > 1, matching the global lower bound 9/7. These three are not formalised in Lean (a Lean formalisation of 4/3 is in progress).
+**Summary (paper v3).** The paper proves `L ≤ 4/3` for Clemen–Dumitrescu–Liu's Problem 1.6 (Theorem 1(a));
+`21/16` when τ ≤ √3/2 − 1/50 or τ ≥ √3/2 + 3/100 (Theorem 1(b)); and `9n/7 + O(n^{2/3})` for τ > 1, matching the
+global lower bound 9/7 (Theorem 1(c)). **Theorem 1(a), the `4/3` bound, is fully formalised in Lean** (standard
+axioms only; the compiled modules also pass `leanchecker`). Theorems 1(b) and 1(c) are not yet formalised
+(in progress).
 
-Earlier, the paper (v2) proved `L ≤ 15/11` for Clemen–Dumitrescu–Liu's Problem 1.6 (Theorem 1(a)), and `4/3`
-in Region II (Theorem 1(b)). **Theorem 1(a), the `15/11` bound, is fully formalised in Lean** (standard axioms only;
-the compiled modules also pass `leanchecker`). Theorem 1(b) is not formalised. The earlier, weaker bound `54/37`
-(Appendix B of the paper) is also fully formalised. The paper also proves `k ≥ 3` rare distances
+The earlier bounds `15/11` (paper v2's main theorem, kept in v3 as the backbone of the proof) and `54/37`
+(Appendix B of the paper) are also fully formalised. The paper also proves `k ≥ 3` rare distances
 for convex sets with `6 ≤ n ≤ 18`, and a linear lower bound for almost-cocircular convex sets (see the paper).
 
 Throughout, `X ⊂ ℝ²` is finite with `|X| = n`, `Δ`, `Δ₂` and `δ` are the largest, second-largest and smallest
 distances determined by `X`, and `μ(d)` is the number of unordered pairs of `X` at distance `d`.
 
-### Theorem 1(a) (the 15/11 bound): fully formalised, standard axioms only
+### Theorem 1(a) (the 4/3 bound): fully formalised, standard axioms only
 
 Clemen, Dumitrescu and Liu (Problem 1.6) asked for
 `L = limsup_{n→∞} max_{|X|=n} min{μ(Δ₂), μ(δ)} / n`. The known bounds were `9/7 ≤ L ≤ 3/2`, the upper bound
 coming from Vesztergombi's inequality `μ(Δ₂) ≤ 3n/2`. We prove
 
-    min{μ(Δ₂), μ(δ)} ≤ (15/11)·n + C₀      for an absolute constant C₀,
+    min{μ(Δ₂), μ(δ)} ≤ (4/3)·n + C₀      for an absolute constant C₀,
 
-so `L ≤ 15/11 < 3/2`. In Lean (`Erdos132/E132Main15.lean`, `Pt = EuclideanSpace ℝ (Fin 2)`):
+so `L ≤ 4/3`. In Lean (`Erdos132/E132Main43.lean`):
+
+```lean
+theorem Erdos132Main.erdos132_main43 :
+    ∃ C₀ : ℝ, ∀ X : Finset Pt, 2 ≤ X.card →
+      (min (mult X (dist2 X)) (mult X (minDist X)) : ℝ) ≤ 4 / 3 * X.card + C₀
+```
+
+The six `E132Main43*.lean` files (about 4,300 lines) add the paper's Theorem N3 (the average weight of `R` is at
+most `8`: `Σ_{y∈R}(deg y + m_y) ≤ 8|R| + C₃`, via the classification of heavy points, Lemma Pin and a charging
+argument) to the `15/11` development below, which they import unchanged.
+
+### The 15/11 bound: fully formalised, standard axioms only
+
+The previous version of the paper proved
+
+    min{μ(Δ₂), μ(δ)} ≤ (15/11)·n + C₀.
+
+In Lean (`Erdos132/E132Main15.lean`, `Pt = EuclideanSpace ℝ (Fin 2)`):
 
 ```lean
 theorem Erdos132Main.erdos132_main15 :
@@ -38,8 +58,8 @@ theorem Erdos132Main.erdos132_main15 :
 ```
 
 The six `E132Main15*.lean` files (about 5,300 lines) build on the `54/37` development below, which they import
-unchanged. The constant is the same explicit `C₀ = 5·10⁹`. The refinement `4/3` in Region II (Theorem 1(b) of the
-paper, via Theorem N2) is **not** formalised; it is not needed for `15/11`.
+unchanged. The constant is the same explicit `C₀ = 5·10⁹`. The refinement `4/3` in Region II of paper v2 (via Theorem N2) is
+**not** formalised; it is not needed for `15/11` and is superseded by the `4/3` bound above.
 
 ### The 54/37 bound: fully formalised, standard axioms only
 
@@ -94,14 +114,16 @@ n = 11 and n = 13 run the bundled CaDiCaL on every build (their certificates, 23
 The `#print axioms` commands are at the end of the respective files, so `lake build` prints them.
 
 ```
+'Erdos132Main.erdos132_main43' depends on axioms: [propext, Classical.choice, Quot.sound]
 'Erdos132Main.erdos132_main15' depends on axioms: [propext, Classical.choice, Quot.sound]
 'Erdos132Main.erdos132_main' depends on axioms: [propext, Classical.choice, Quot.sound]
 ```
 
-The six `E132Main15*` modules were also replayed with the kernel checker `leanchecker` (shipped with the
-toolchain), which re-checks every declaration of a compiled module:
+The six `E132Main43*` and the six `E132Main15*` modules were also replayed with the kernel checker `leanchecker`
+(shipped with the toolchain), which re-checks every declaration of a compiled module:
 
 ```sh
+for m in Defs Good Frame Classify Charge ""; do lake env leanchecker Erdos132.E132Main43$m; done
 for m in Defs N1 RegionII Exact RegionIII ""; do lake env leanchecker Erdos132.E132Main15$m; done
 ```
 
@@ -142,8 +164,8 @@ Older toolchains used `Lean.ofReduceBool` for the same step; the trust base is t
 The axiom states that Lean's LRAT checker `verifyBVExpr`, which is itself proved correct in Lean together with
 the bit-blaster and the AIG→CNF translation, returns `true` on these concrete inputs. The `true` comes from
 running the compiled checker, not from the kernel. Trusted: the Lean compiler and runtime. **Not** trusted:
-CaDiCaL, the Python CNF encoder `scripts/b3_sat.py`, drat-trim. None of them is involved. The `15/11` and `54/37`
-bounds, Vesztergombi, Hopf–Pannwitz and the layer bound use neither `bv_decide` nor `native_decide`.
+CaDiCaL, the Python CNF encoder `scripts/b3_sat.py`, drat-trim. None of them is involved. The `4/3`, `15/11` and
+`54/37` bounds, Vesztergombi, Hopf–Pannwitz and the layer bound use neither `bv_decide` nor `native_decide`.
 
 ## Building and checking
 
@@ -152,15 +174,18 @@ up from `lean-toolchain`; Mathlib is pinned to tag `v4.35.0-rc2` (rev `065356127
 
 ```sh
 lake exe cache get     # download prebuilt Mathlib
-lake build             # builds all 17 modules and prints the #print axioms output
+lake build             # builds all 23 modules and prints the #print axioms output
 ```
 
-Build time (Apple silicon laptop, 16 GB RAM, Mathlib from cache): about 7 minutes wall-clock for all 17 modules
-(peak about 3 GB RSS); the six `E132Main15*` modules take about 1 minute on top of the `54/37` development.
+Build time (Apple silicon laptop, 16 GB RAM, Mathlib from cache): about 7 minutes wall-clock for the first 17 modules
+(peak about 3 GB RSS); the six `E132Main15*` modules take about 1 minute on top of the `54/37` development, and the
+six `E132Main43*` modules about 1 minute more. On a machine with little memory, build the modules one at a
+time (`lake build Erdos132.<Module>` in import order), since `lake build` compiles independent modules in parallel.
 The slowest module is `E132Convex13.lean`, about 4 minutes on its own (CaDiCaL + LRAT check
 for n = 13). To skip it, build only the modules you need:
 
 ```sh
+lake build Erdos132.E132Main43         # 4/3 bound (+ 15/11, 54/37, Vesztergombi, Hopf–Pannwitz, layer bound)
 lake build Erdos132.E132Main15         # 15/11 bound (+ 54/37, Vesztergombi, Hopf–Pannwitz, layer bound)
 lake build Erdos132.E132Main           # 54/37 bound (+ Vesztergombi, Hopf–Pannwitz, layer bound)
 lake build Erdos132.E132ConvexFinset   # n = 7, 11
@@ -193,6 +218,12 @@ the remaining occurrences of the word are in comments.
 | `Erdos132/E132Main15Exact.lean` | the case `τ = √3/2` of Region III: circle-arc rigidity and `exact_breaks` |
 | `Erdos132/E132Main15RegionIII.lean` | Region III by slots (`τ < √3/2`) and breaks (`τ = √3/2`) |
 | `Erdos132/E132Main15.lean` | assembly: `erdos132_main15` |
+| `Erdos132/E132Main43Defs.lean` | definitions for the `4/3` bound (weight `vR`, depth, receivers `Low`, heavy and good points, the structure `Frame43`, fan/cap predicates, constants); the charging lemma `charge_sum`, the linear combination `lp43` |
+| `Erdos132/E132Main43Good.lean` | good points without arc length: at most `10¹⁵` heavy points are not good (thin case, big turning); `frame_of_good` |
+| `Erdos132/E132Main43Frame.lean` | consequences of a frame: points outside `int K`, D-points, Lemma DN, D–D heights, receivers |
+| `Erdos132/E132Main43Classify.lean` | Lemma P (pairs), Lemma M, the hexagon lemma, Lemma H, Lemma Pin; classification of heavy points (fans, caps) |
+| `Erdos132/E132Main43Charge.lean` | receivers lie in `R` and have weight `≤ 7`; each receiver has one owner (fans, caps, HF2–HF2) |
+| `Erdos132/E132Main43.lean` | Theorem N3, assembly: `erdos132_main43` |
 | `paper/` | `paper.tex`, `refs.bib`, `paper.pdf` |
 | `scripts/` | verification scripts cited in the paper's appendix (see below) |
 
@@ -210,6 +241,28 @@ the paper. The paper refers to the directory as `problems/132/scripts/`; in this
   `b3_validate.py`, `b3_drup_check.py`, `b3_drat_trim.py`, `b3_core.py`, `b3_run_all.sh`.
 
 ## Deviations of the formalisation from the paper
+
+### The 4/3 bound
+
+The Lean proof of Theorem 1(a) follows Section 9 of the paper (Theorem N3 and the proof of Theorem 1(a)) on top
+of the `15/11` development. It differs from the text in these places (also listed in the paper, Section 14.2):
+
+- **Goodness without arc length.** `y` is good if all unit outer normals of `K` at boundary points within
+  *Euclidean* distance `Λ = 464` of `y` are pairwise within `ε₀ = 1/50` (in norm). A heavy point that is not good
+  is *thin* (two nearly opposite normals; then `|X ∖ D|` is bounded by a box-packing argument at scale `Λ`, split
+  according to `Δ₂ ≥ 10⁶` or not) or has *big turning* in `∂K ∩ B̄(y, 150Λ)`, which happens for `O(1)` points.
+  The paper's Lemma T* (packing in thin `K`) is not needed. Exceptional set: at most `10¹⁵` points.
+- **Frame without the graph `f`.** The frame lemma is replaced by the structure `Frame43`: the unit outer normal
+  `n` at a nearest boundary point, closeness of all normals within distance `6` to `n`, and two points of `K` at
+  abscissa `±463` and height `≥ h − 9.31`. (G1) becomes `q_z ≥ h − |q_x|/49` for `q ∉ int K` (slope `1/49`);
+  Lemma DN uses the far points and gives `3/100` and `9/400` (paper: `0.0267`, `0.0224`).
+- **Intrinsic receivers.** Receivers are the `δ`-neighbours `a ∈ K` of `y` at least `2/3` deeper than `y`; an HF
+  point sends one unit to each of its two lower neighbours (the paper: to one). The owner-uniqueness argument works
+  for every receiver.
+- **Classification and Lemma Pin** use the formal constants with slot tolerance `1/20`; Lemma Pin is proved in
+  Euclidean form (law of cosines), with windows `t ≥ 0.7` (fans) and `t ≤ 0.6` (caps) in place of
+  `[0.75, 0.95]` and `[0.44, 0.56]`.
+- **Not formalised:** Theorems 1(b) (`21/16`) and 1(c) (`9/7` for `τ > 1`); in progress.
 
 ### The 15/11 bound
 
@@ -250,7 +303,7 @@ The Lean proof of the `54/37` bound follows the paper's Appendix B, with these d
 - **Conventions.** `mult` counts unordered pairs of distinct points; `diam`, `dist2`, `minDist` are `0` when
   undefined, so the only hypothesis is `2 ≤ X.card`.
 
-Some docstrings in the `E132Main*` and `E132Main15*` files date from the skeleton phase of the formalisation and
+Some docstrings in the `E132Main*`, `E132Main15*` and `E132Main43*` files date from the skeleton phase of the formalisation and
 still mention remaining `sorry`s, `TODO`s, a cited `vesztergombi87`, or internal planning notes that are not part of
 this repository. They are historical; the `#print axioms` output is authoritative.
 

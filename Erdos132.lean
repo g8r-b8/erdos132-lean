@@ -15,3 +15,9 @@ import Erdos132.E132Main15RegionII
 import Erdos132.E132Main15Exact
 import Erdos132.E132Main15RegionIII
 import Erdos132.E132Main15
+import Erdos132.E132Main43Defs
+import Erdos132.E132Main43Good
+import Erdos132.E132Main43Frame
+import Erdos132.E132Main43Classify
+import Erdos132.E132Main43Charge
+import Erdos132.E132Main43
